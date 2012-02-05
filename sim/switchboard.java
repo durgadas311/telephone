@@ -1,5 +1,5 @@
 // Copyright (c) 2011,2012 Douglas Miller
-// $Id: switchboard.java,v 1.5 2012/02/05 16:15:17 drmiller Exp $
+// $Id: switchboard.java,v 1.6 2012/02/05 17:19:49 drmiller Exp $
 
 import java.awt.*;
 import javax.swing.*;
@@ -8,7 +8,7 @@ import java.util.Arrays;
 
 public class switchboard
 {
-	final String ident = "$Id: switchboard.java,v 1.5 2012/02/05 16:15:17 drmiller Exp $";
+	final String ident = "$Id: switchboard.java,v 1.6 2012/02/05 17:19:49 drmiller Exp $";
 
 	static final Color cabinet = new Color(165, 125, 14);
 	static final Color drop = new Color(150, 150, 150);
@@ -44,51 +44,73 @@ public class switchboard
 		s.weighty = 0;
 		s.gridwidth = 1;
 		s.gridheight = 1;
-		s.anchor = GridBagConstraints.CENTER;
+		s.anchor = GridBagConstraints.WEST;
 
 		int num_lines = 5;
-		int lines_per_row = 10;
 		int num_circs = 2;
 
-		int max_x = 0;
 		int last_y = 0;
 
-		int x;
-		Kellogg_LineWithDrop li;
-		for (x = 0; x < num_lines; ++x) {
-			li = new Kellogg_LineWithDrop(x + 1, font_metrics);
-			s.gridx = x % lines_per_row;
-			s.gridy = x / lines_per_row;
-			if (s.gridy > last_y) last_y = s.gridy;
-			if (s.gridx > max_x) max_x = s.gridx;
-			s.gridwidth = 1;
-			s.gridheight = 1;
-			gridbag.setConstraints(li, s);
-			front_end.add(li);
-		}
+		Kellogg_LinePanel lp = new Kellogg_LinePanel(num_lines, font_metrics);
+		s.gridx = 0;
+		s.gridy = 0;
+		s.gridwidth = 8;
+		s.gridheight = 1;
+		gridbag.setConstraints(lp, s);
+		front_end.add(lp);
 
 		++last_y;
 		JPanel pan = new JPanel();
 		pan.setOpaque(true);
 		pan.setBackground(Color.black);
-		pan.setPreferredSize(new Dimension(60 * (max_x + 1), 1));
-			s.gridx = 0;
-			s.gridy = last_y;
-			s.gridwidth = max_x + 1;
-			s.gridheight = 1;
-			gridbag.setConstraints(pan, s);
-			front_end.add(pan);
+		pan.setPreferredSize(new Dimension(60 * Kellogg_LinePanel.lines_per_row, 1));
+		s.gridx = 0;
+		s.gridy = 1;
+		s.gridwidth = 8;
+		s.gridheight = 1;
+		gridbag.setConstraints(pan, s);
+		front_end.add(pan);
 
-		++last_y;
+		last_y = 2;
+		int x;
 		for (x = 0; x < num_circs; ++x) {
-			Kellogg_Circuit cir = new Kellogg_Circuit(x + 1, font_metrics);
+			Kellogg_Drop drp1 = new Kellogg_Drop(x + 1, font_metrics);
 			s.gridx = x;
 			s.gridy = last_y;
+			s.gridwidth = 1;
+			s.gridheight = 1;
+			gridbag.setConstraints(drp1, s);
+			front_end.add(drp1);
+			Kellogg_Drop drp2 = new Kellogg_Drop(x + 1, font_metrics);
+			s.gridx = x;
+			s.gridy = last_y + 1;
+			s.gridwidth = 1;
+			s.gridheight = 1;
+			gridbag.setConstraints(drp2, s);
+			front_end.add(drp2);
+			Kellogg_Circuit cir = new Kellogg_Circuit(x + 1,
+						drp1, drp2, font_metrics);
+			s.gridx = x;
+			s.gridy = last_y + 3;
 			s.gridwidth = 1;
 			s.gridheight = 1;
 			gridbag.setConstraints(cir, s);
 			front_end.add(cir);
 		}
+		last_y += 2;
+
+		pan = new JPanel();
+		pan.setOpaque(true);
+		pan.setBackground(Color.black);
+		pan.setPreferredSize(new Dimension(60 * Kellogg_LinePanel.lines_per_row, 1));
+		s.gridx = 0;
+		s.gridy = last_y;
+		s.gridwidth = 8;
+		s.gridheight = 1;
+		gridbag.setConstraints(pan, s);
+		front_end.add(pan);
+
+		last_y += 2;
 
 		front_end.getContentPane().setBackground(cabinet);
 		front_end.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -98,10 +120,43 @@ public class switchboard
 	}
 }
 
+class Kellogg_LinePanel extends JPanel
+{
+	static final long serialVersionUID = 311000000009L;
+
+	public static final int lines_per_row = 10;
+
+	public Kellogg_LinePanel(int num, FontMetrics font_metrics) {
+		int x;
+		GridBagLayout gridbag = new GridBagLayout();
+		setLayout(gridbag);
+		setOpaque(false);
+		GridBagConstraints s = new GridBagConstraints();
+		s.fill = GridBagConstraints.NONE;
+		s.gridx = 0;
+		s.gridy = 0;
+		s.weightx = 0;
+		s.weighty = 0;
+		s.gridwidth = 1;
+		s.gridheight = 1;
+		s.anchor = GridBagConstraints.CENTER;
+		Kellogg_LineWithDrop li;
+		for (x = 0; x < num; ++x) {
+			li = new Kellogg_LineWithDrop(this, x + 1, font_metrics);
+			s.gridx = x % lines_per_row;
+			s.gridy = x / lines_per_row;
+			s.gridwidth = 1;
+			s.gridheight = 1;
+			gridbag.setConstraints(li, s);
+			add(li);
+		}
+	}
+}
+
 class Kellogg_Drop extends JPanel
 	implements MouseListener
 {
-	final String ident = "$Id: switchboard.java,v 1.5 2012/02/05 16:15:17 drmiller Exp $";
+	final String ident = "$Id: switchboard.java,v 1.6 2012/02/05 17:19:49 drmiller Exp $";
 	static final long serialVersionUID = 311000000003L;
 
 	static final int[] shutter_x = { 40, 50, 50, 10, 10, 20, 40 };
@@ -179,7 +234,7 @@ class Kellogg_Drop extends JPanel
 class Kellogg_Line extends JPanel
 	implements MouseListener
 {
-	final String ident = "$Id: switchboard.java,v 1.5 2012/02/05 16:15:17 drmiller Exp $";
+	final String ident = "$Id: switchboard.java,v 1.6 2012/02/05 17:19:49 drmiller Exp $";
 	static final long serialVersionUID = 311000000002L;
 
 	static final int[] hex_top_x = { 20, 40, 46, 14, 10, 20 };
@@ -190,6 +245,7 @@ class Kellogg_Line extends JPanel
 
 	private boolean _plugged;
 	private JPanel _parent;
+	private Kellogg_Drop _drop;
 
 	public void paint(Graphics g) {
 		super.paint(g);
@@ -220,8 +276,9 @@ class Kellogg_Line extends JPanel
 		}
 	}
 
-	public Kellogg_Line(JPanel parent) {
+	public Kellogg_Line(JPanel parent, Kellogg_Drop drop) {
 		_parent = parent;
+		_drop = drop;
 		setPreferredSize(new Dimension(60, 40));
 		setOpaque(false);
 		setForeground(Color.black);
@@ -241,6 +298,9 @@ class Kellogg_Line extends JPanel
 	public void setPlugged(boolean plug) {
 		if (plug != _plugged) {
 			_plugged = plug;
+			if (_plugged) {
+				_drop.setDropped(false);
+			}
 			repaint();
 		}
 	}
@@ -248,15 +308,17 @@ class Kellogg_Line extends JPanel
 
 class Kellogg_LineWithDrop extends JPanel
 {
-	final String ident = "$Id: switchboard.java,v 1.5 2012/02/05 16:15:17 drmiller Exp $";
+	final String ident = "$Id: switchboard.java,v 1.6 2012/02/05 17:19:49 drmiller Exp $";
 	static final long serialVersionUID = 311000000004L;
 
+	private JPanel _parent;
 	private Kellogg_Drop _drop;
 	private Kellogg_Line _line;
 
-	public Kellogg_LineWithDrop(int num, FontMetrics font_metrics) {
+	public Kellogg_LineWithDrop(JPanel parent, int num, FontMetrics font_metrics) {
+		_parent = parent;
 		_drop = new Kellogg_Drop(num, font_metrics);
-		_line = new Kellogg_Line(this);
+		_line = new Kellogg_Line(this, _drop);
 
 		GridBagLayout gridbag = new GridBagLayout();
 		setLayout(gridbag);
@@ -289,15 +351,24 @@ class Kellogg_LineWithDrop extends JPanel
 		setForeground(Color.black);
 		setFont(switchboard.font);
 	}
+
+	public Point getLocation() {
+		Point m = super.getLocation();
+		Point p = _parent.getLocation();
+		p.x += m.x;
+		p.y += m.y;
+		return p;
+	}
 }
 
 class Kellogg_Plug extends JPanel
 	implements MouseListener
 {
-	final String ident = "$Id: switchboard.java,v 1.5 2012/02/05 16:15:17 drmiller Exp $";
+	final String ident = "$Id: switchboard.java,v 1.6 2012/02/05 17:19:49 drmiller Exp $";
 	static final long serialVersionUID = 311000000005L;
 
 	private JPanel _parent;
+	private Kellogg_Drop _co_drop;
 
 	public void paint(Graphics g) {
 		super.paint(g);
@@ -305,9 +376,10 @@ class Kellogg_Plug extends JPanel
 		g.fillOval(15,  0, 30, 30);
 	}
 
-	public Kellogg_Plug(JPanel parent) {
+	public Kellogg_Plug(JPanel parent, Kellogg_Drop drop) {
+		_co_drop = drop;
 		_parent = parent;
-		setPreferredSize(new Dimension(60, 40));
+		setPreferredSize(new Dimension(75, 40));
 		setOpaque(false);
 		setForeground(Color.black);
 		setFont(switchboard.font);
@@ -315,6 +387,7 @@ class Kellogg_Plug extends JPanel
 	}
 
 	public void mouseClicked(MouseEvent e) {
+		_co_drop.setDropped(!_co_drop.isDropped());
 		Point p;
 		p = _parent.getLocation();
 		System.err.println("click "+p);
@@ -329,7 +402,7 @@ class Kellogg_Plug extends JPanel
 class Kellogg_RingSw extends JPanel
 	implements MouseListener
 {
-	final String ident = "$Id: switchboard.java,v 1.5 2012/02/05 16:15:17 drmiller Exp $";
+	final String ident = "$Id: switchboard.java,v 1.6 2012/02/05 17:19:49 drmiller Exp $";
 	static final long serialVersionUID = 311000000007L;
 
 	private JPanel _parent;
@@ -342,7 +415,7 @@ class Kellogg_RingSw extends JPanel
 
 	public Kellogg_RingSw(JPanel parent) {
 		_parent = parent;
-		setPreferredSize(new Dimension(60, 40));
+		setPreferredSize(new Dimension(75, 40));
 		setOpaque(false);
 		setForeground(Color.black);
 		setFont(switchboard.font);
@@ -364,7 +437,7 @@ class Kellogg_RingSw extends JPanel
 class Kellogg_ListenSw extends JPanel
 	implements MouseListener
 {
-	final String ident = "$Id: switchboard.java,v 1.5 2012/02/05 16:15:17 drmiller Exp $";
+	final String ident = "$Id: switchboard.java,v 1.6 2012/02/05 17:19:49 drmiller Exp $";
 	static final long serialVersionUID = 311000000006L;
 
 	private JPanel _parent;
@@ -377,7 +450,7 @@ class Kellogg_ListenSw extends JPanel
 
 	public Kellogg_ListenSw(JPanel parent) {
 		_parent = parent;
-		setPreferredSize(new Dimension(60, 40));
+		setPreferredSize(new Dimension(75, 40));
 		setOpaque(false);
 		setForeground(Color.black);
 		setFont(switchboard.font);
@@ -398,20 +471,25 @@ class Kellogg_ListenSw extends JPanel
 
 class Kellogg_Circuit extends JPanel
 {
-	final String ident = "$Id: switchboard.java,v 1.5 2012/02/05 16:15:17 drmiller Exp $";
+	final String ident = "$Id: switchboard.java,v 1.6 2012/02/05 17:19:49 drmiller Exp $";
 	static final long serialVersionUID = 311000000008L;
 
 	private Kellogg_ListenSw _listen;
 	private Kellogg_RingSw _ring;
 	private Kellogg_Plug _call;
 	private Kellogg_Plug _ans;
+	private Kellogg_Drop _drop_call;
+	private Kellogg_Drop _drop_ans;
 
-	public Kellogg_Circuit(int num, FontMetrics font_metrics) {
+	public Kellogg_Circuit(int num,
+			Kellogg_Drop drp1, Kellogg_Drop drp2, FontMetrics font_metrics) {
 		if (font_metrics.stringWidth("damn warnings") < 0) return;
+		_drop_call = drp1;
+		_drop_ans = drp2;
 		_listen = new Kellogg_ListenSw(this);
 		_ring = new Kellogg_RingSw(this);
-		_call = new Kellogg_Plug(this);
-		_ans = new Kellogg_Plug(this);
+		_call = new Kellogg_Plug(this, _drop_call);
+		_ans = new Kellogg_Plug(this, _drop_ans);
 
 		GridBagLayout gridbag = new GridBagLayout();
 		setLayout(gridbag);
@@ -464,7 +542,7 @@ class Kellogg_Circuit extends JPanel
 		gridbag.setConstraints(lab, s);
 		add(lab);
 
-		setPreferredSize(new Dimension(60, 200));
+		setPreferredSize(new Dimension(75, 200));
 		setOpaque(false);
 		setForeground(Color.black);
 		setFont(switchboard.font);
