@@ -1,5 +1,5 @@
 // Copyright (c) 2011,2012 Douglas Miller
-// $Id: switchboard.java,v 1.3 2012/02/05 15:12:55 drmiller Exp $
+// $Id: switchboard.java,v 1.4 2012/02/05 15:43:43 drmiller Exp $
 
 import java.awt.*;
 import javax.swing.*;
@@ -8,7 +8,7 @@ import java.util.Arrays;
 
 public class switchboard
 {
-	final String ident = "$Id: switchboard.java,v 1.3 2012/02/05 15:12:55 drmiller Exp $";
+	final String ident = "$Id: switchboard.java,v 1.4 2012/02/05 15:43:43 drmiller Exp $";
 
 	static final Color cabinet = new Color(165, 125, 14);
 	static final Color drop = new Color(150, 150, 150);
@@ -18,7 +18,9 @@ public class switchboard
 	static final Color edge_lt = new Color(150, 150, 150);
 	static final Color edge_dk = new Color(110, 110, 110);
 	static final Color jack_bev = new Color(180, 180, 180);
-	static final Color jack_face = new Color(240, 240, 240);
+	static final Color jack_face = new Color(220, 220, 220);
+	static final Color jack_dk = new Color(170, 170, 170);
+	static final Color jack_lt = new Color(255, 255, 255);
 	static final Color jack_well = new Color(150, 150, 150);
 	static final Color jack_hole = new Color(20, 20, 20);
 
@@ -70,7 +72,7 @@ public class switchboard
 class Kellogg_Drop extends JPanel
 	implements MouseListener
 {
-	final String ident = "$Id: switchboard.java,v 1.3 2012/02/05 15:12:55 drmiller Exp $";
+	final String ident = "$Id: switchboard.java,v 1.4 2012/02/05 15:43:43 drmiller Exp $";
 	static final long serialVersionUID = 311000000003L;
 
 	static final int[] shutter_x = { 40, 50, 50, 10, 10, 20, 40 };
@@ -148,23 +150,36 @@ class Kellogg_Drop extends JPanel
 class Kellogg_Line extends JPanel
 	implements MouseListener
 {
-	final String ident = "$Id: switchboard.java,v 1.3 2012/02/05 15:12:55 drmiller Exp $";
+	final String ident = "$Id: switchboard.java,v 1.4 2012/02/05 15:43:43 drmiller Exp $";
 	static final long serialVersionUID = 311000000002L;
 
 	static final int[] hex_x = { 20, 40, 50, 40, 20, 10, 20 };
 	static final int[] hex_y = {  0,  0, 15, 30, 30, 15,  0 };
+
+	static final int[] hex_top_x = { 20, 40, 46, 14, 10, 20 };
+	static final int[] hex_top_y = {  0,  0,  9, 21, 15,  0 };
+
+	static final int[] hex_bot_x = { 46, 50, 40, 20, 14, 46 };
+	static final int[] hex_bot_y = {  9, 15, 31, 31, 21,  9 };
 
 	private boolean _plugged;
 	private JPanel _parent;
 
 	public void paint(Graphics g) {
 		super.paint(g);
-		g.setColor(switchboard.jack_bev);
-		g.fillPolygon(hex_x, hex_y, 6);
+		g.setColor(switchboard.jack_lt);
+		g.fillPolygon(hex_top_x, hex_top_y, 5);
+		g.setColor(switchboard.jack_dk);
+		g.fillPolygon(hex_bot_x, hex_bot_y, 5);
 		g.setColor(switchboard.jack_face);
-		g.fillOval(15,  0, 30, 30);
-		g.setColor(switchboard.jack_well);
-		g.fillOval(20,  5, 20, 20);
+		g.fillOval(14,  0, 32, 30);
+		//g.setColor(switchboard.jack_well);
+		//g.fillOval(20,  5, 20, 20);
+		g.setColor(switchboard.jack_lt);
+		g.fillArc(20,  5, 20, 20, -155, 180);
+		g.setColor(switchboard.jack_dk);
+		g.fillArc(20,  5, 20, 20, 25, 180);
+
 		g.setColor(switchboard.jack_hole);
 		if (_plugged) g.setColor(Color.yellow);
 		g.fillOval(22,  7, 16, 16);
@@ -209,7 +224,7 @@ class Kellogg_Line extends JPanel
 
 class Kellogg_LineWithDrop extends JPanel
 {
-	final String ident = "$Id: switchboard.java,v 1.3 2012/02/05 15:12:55 drmiller Exp $";
+	final String ident = "$Id: switchboard.java,v 1.4 2012/02/05 15:43:43 drmiller Exp $";
 	static final long serialVersionUID = 311000000004L;
 
 	private Kellogg_Drop _drop;
