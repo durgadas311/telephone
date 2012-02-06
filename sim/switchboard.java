@@ -1,5 +1,5 @@
 // Copyright (c) 2011,2012 Douglas Miller
-// $Id: switchboard.java,v 1.11 2012/02/06 16:38:00 drmiller Exp $
+// $Id: switchboard.java,v 1.12 2012/02/06 16:51:16 drmiller Exp $
 
 import java.awt.*;
 import javax.swing.*;
@@ -8,7 +8,7 @@ import java.util.Arrays;
 
 public class switchboard
 {
-	final String ident = "$Id: switchboard.java,v 1.11 2012/02/06 16:38:00 drmiller Exp $";
+	final String ident = "$Id: switchboard.java,v 1.12 2012/02/06 16:51:16 drmiller Exp $";
 
 	static final Color cabinet = new Color(165, 125, 14);
 
@@ -57,7 +57,7 @@ public class switchboard
 		//front_end.setIconImage(img);
 		FontMetrics font_metrics = front_end.getFontMetrics(font);
 
-		int num_lines = 10;
+		int num_lines = 20;
 		int num_circs = 4;
 
 		Kellogg_Cabinet cab = new Kellogg_Cabinet(num_lines, num_circs, font_metrics);
@@ -247,6 +247,7 @@ class Kellogg_LinePanel extends JPanel
 
 	public Kellogg_LinePanel(int num, Kellogg_Cabinet cab, FontMetrics font_metrics) {
 		int x;
+		int max_row = num / lines_per_row;
 		GridBagLayout gridbag = new GridBagLayout();
 		setLayout(gridbag);
 		setOpaque(false);
@@ -263,7 +264,7 @@ class Kellogg_LinePanel extends JPanel
 		for (x = 0; x < num; ++x) {
 			li = new Kellogg_LineWithDrop(this, x + 1, cab, font_metrics);
 			s.gridx = x % lines_per_row;
-			s.gridy = x / lines_per_row;
+			s.gridy = max_row - (x / lines_per_row);
 			s.gridwidth = 1;
 			s.gridheight = 1;
 			gridbag.setConstraints(li, s);
@@ -275,7 +276,7 @@ class Kellogg_LinePanel extends JPanel
 class Kellogg_Drop extends JPanel
 	implements MouseListener
 {
-	final String ident = "$Id: switchboard.java,v 1.11 2012/02/06 16:38:00 drmiller Exp $";
+	final String ident = "$Id: switchboard.java,v 1.12 2012/02/06 16:51:16 drmiller Exp $";
 	static final long serialVersionUID = 311000000003L;
 
 	static final int[] shutter_x = { 40, 50, 50, 10, 10, 20, 40 };
@@ -382,7 +383,7 @@ class Kellogg_Drop extends JPanel
 class Kellogg_Line extends JPanel
 	implements MouseListener
 {
-	final String ident = "$Id: switchboard.java,v 1.11 2012/02/06 16:38:00 drmiller Exp $";
+	final String ident = "$Id: switchboard.java,v 1.12 2012/02/06 16:51:16 drmiller Exp $";
 	static final long serialVersionUID = 311000000002L;
 
 	static final int[] hex_top_x = { 20, 40, 46, 14, 10, 20 };
@@ -472,7 +473,7 @@ class Kellogg_Line extends JPanel
 
 class Kellogg_LineWithDrop extends JPanel
 {
-	final String ident = "$Id: switchboard.java,v 1.11 2012/02/06 16:38:00 drmiller Exp $";
+	final String ident = "$Id: switchboard.java,v 1.12 2012/02/06 16:51:16 drmiller Exp $";
 	static final long serialVersionUID = 311000000004L;
 
 	private JPanel _parent;
@@ -529,7 +530,7 @@ class Kellogg_LineWithDrop extends JPanel
 class Kellogg_Plug extends JPanel
 	implements MouseListener
 {
-	final String ident = "$Id: switchboard.java,v 1.11 2012/02/06 16:38:00 drmiller Exp $";
+	final String ident = "$Id: switchboard.java,v 1.12 2012/02/06 16:51:16 drmiller Exp $";
 	static final long serialVersionUID = 311000000005L;
 	static final Point _center = new Point(40, 18);
 
@@ -624,7 +625,7 @@ class Kellogg_Plug extends JPanel
 class Kellogg_RingSw extends JPanel
 	implements MouseListener
 {
-	final String ident = "$Id: switchboard.java,v 1.11 2012/02/06 16:38:00 drmiller Exp $";
+	final String ident = "$Id: switchboard.java,v 1.12 2012/02/06 16:51:16 drmiller Exp $";
 	static final long serialVersionUID = 311000000007L;
 
 	private int _state;
@@ -685,7 +686,7 @@ class Kellogg_RingSw extends JPanel
 class Kellogg_ListenSw extends JPanel
 	implements MouseListener
 {
-	final String ident = "$Id: switchboard.java,v 1.11 2012/02/06 16:38:00 drmiller Exp $";
+	final String ident = "$Id: switchboard.java,v 1.12 2012/02/06 16:51:16 drmiller Exp $";
 	static final long serialVersionUID = 311000000006L;
 
 	private boolean _state;
@@ -731,7 +732,7 @@ class Kellogg_ListenSw extends JPanel
 
 class Kellogg_Circuit extends JPanel
 {
-	final String ident = "$Id: switchboard.java,v 1.11 2012/02/06 16:38:00 drmiller Exp $";
+	final String ident = "$Id: switchboard.java,v 1.12 2012/02/06 16:51:16 drmiller Exp $";
 	static final long serialVersionUID = 311000000008L;
 
 	private Kellogg_ListenSw _listen;
