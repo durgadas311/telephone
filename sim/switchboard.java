@@ -1,5 +1,5 @@
 // Copyright (c) 2011,2012 Douglas Miller
-// $Id: switchboard.java,v 1.7 2012/02/05 22:37:17 drmiller Exp $
+// $Id: switchboard.java,v 1.8 2012/02/06 01:19:04 drmiller Exp $
 
 import java.awt.*;
 import javax.swing.*;
@@ -9,21 +9,38 @@ import java.awt.geom.Point2D;
 
 public class switchboard
 {
-	final String ident = "$Id: switchboard.java,v 1.7 2012/02/05 22:37:17 drmiller Exp $";
+	final String ident = "$Id: switchboard.java,v 1.8 2012/02/06 01:19:04 drmiller Exp $";
 
 	static final Color cabinet = new Color(165, 125, 14);
-	static final Color drop = new Color(150, 150, 150);
-	static final Color drop_lt = new Color(170, 170, 170);
-	static final Color drop_dk = new Color(130, 130, 130);
-	static final Color edge = new Color(130, 130, 130);
-	static final Color edge_lt = new Color(150, 150, 150);
-	static final Color edge_dk = new Color(110, 110, 110);
+
+	static final Color drop = new Color(100, 100, 100);
+	static final Color drop_lt = new Color(130, 130, 130);
+	static final Color drop_dk = new Color(90, 90, 90);
+	static final Color drop_void = new Color(200, 200, 200);
+	static final Color drop_label = new Color(150, 150, 150);
+	static final Color drop_text = new Color(255, 255, 255);
+
+	static final Color edge = new Color(90, 90, 90);
+	static final Color edge_lt = new Color(120, 120, 120);
+	static final Color edge_dk = new Color(80, 80, 80);
+	static final Color edge_label = new Color(110, 110, 110);
+
 	static final Color jack_bev = new Color(180, 180, 180);
 	static final Color jack_face = new Color(220, 220, 220);
 	static final Color jack_dk = new Color(170, 170, 170);
 	static final Color jack_lt = new Color(255, 255, 255);
 	static final Color jack_well = new Color(150, 150, 150);
 	static final Color jack_hole = new Color(20, 20, 20);
+
+	static final Color plug = new Color(0, 0, 0);
+	static final Color plug_lt = new Color(190, 190, 190);
+	static final Color plug_dk = new Color(0, 0, 0);
+
+	static final Color well = new Color(100, 60, 0);
+	static final Color well_lt = new Color(175, 135, 24);
+	static final Color well_dk = new Color(130, 90, 0);
+	//static final Color cabinet = new Color(165, 125, 14);
+
 	static final Color cord = new Color(151, 111, 0);
 
 	static final Font font = new Font("Serif", Font.PLAIN, 18);
@@ -264,14 +281,17 @@ class Kellogg_LinePanel extends JPanel
 class Kellogg_Drop extends JPanel
 	implements MouseListener
 {
-	final String ident = "$Id: switchboard.java,v 1.7 2012/02/05 22:37:17 drmiller Exp $";
+	final String ident = "$Id: switchboard.java,v 1.8 2012/02/06 01:19:04 drmiller Exp $";
 	static final long serialVersionUID = 311000000003L;
 
 	static final int[] shutter_x = { 40, 50, 50, 10, 10, 20, 40 };
 	static final int[] shutter_y = { 10, 20, 50, 50, 20, 10, 10 };
+	static final int[] label_r = { 12, 25, 36, 20 };
 
 	static final int[] shutter_dn_x = { 40, 52, 50, 10,  8, 20, 40 };
 	static final int[] shutter_dn_y = { 38, 41, 50, 50, 41, 38, 38 };
+	static final int[] label_dn_x = { 50, 48, 12, 10 };
+	static final int[] label_dn_y = { 43, 48, 48, 43 };
 
 	private int _num;
 	private String _tag;
@@ -279,6 +299,8 @@ class Kellogg_Drop extends JPanel
 	private boolean _dropped;
 	private int[] _shutter_x;
 	private int[] _shutter_dn_x;
+	private int[] _label;
+	private int[] _label_dn_x;
 
 	public void paint(Graphics g) {
 		super.paint(g);
@@ -293,6 +315,8 @@ class Kellogg_Drop extends JPanel
 			g.setColor(switchboard.edge_lt);
 			g.drawPolyline(Arrays.copyOfRange(_shutter_dn_x, 4, 7),
 					Arrays.copyOfRange(shutter_dn_y, 4, 7), 3);
+			g.setColor(switchboard.edge_label);
+			g.fillPolygon(_label_dn_x, label_dn_y, 4);
 		} else {
 			g.setColor(switchboard.drop);
 			g.fillPolygon(_shutter_x, shutter_y, 6);
@@ -301,8 +325,10 @@ class Kellogg_Drop extends JPanel
 			g.setColor(switchboard.drop_lt);
 			g.drawPolyline(Arrays.copyOfRange(_shutter_x, 3, 7),
 					Arrays.copyOfRange(shutter_y, 3, 7), 4);
-			g.setColor(Color.red);
-			g.drawString(_tag, _tag_x, 40);
+			g.setColor(switchboard.drop_label);
+			g.fillRect(_label[0], _label[1], _label[2], _label[3]);
+			g.setColor(switchboard.drop_text);
+			g.drawString(_tag, _tag_x, 42);
 		}
 	}
 
@@ -314,6 +340,8 @@ class Kellogg_Drop extends JPanel
 		_tag_x = (width / 2) - (w / 2);
 		_shutter_x = Arrays.copyOf(shutter_x, 7);
 		_shutter_dn_x = Arrays.copyOf(shutter_dn_x, 7);
+		_label_dn_x = Arrays.copyOf(label_dn_x, 7);
+		_label = Arrays.copyOf(label_r, 4);
 		if (off > 0) {
 			int i;
 			for (i = 0; i < _shutter_x.length; ++i) {
@@ -322,6 +350,10 @@ class Kellogg_Drop extends JPanel
 			for (i = 0; i < _shutter_dn_x.length; ++i) {
 				_shutter_dn_x[i] += off;
 			}
+			for (i = 0; i < _label_dn_x.length; ++i) {
+				_label_dn_x[i] += off;
+			}
+			_label[0] += off;
 		}
 		_dropped = false;
 		setPreferredSize(new Dimension(60, 60));
@@ -356,7 +388,7 @@ class Kellogg_Drop extends JPanel
 class Kellogg_Line extends JPanel
 	implements MouseListener
 {
-	final String ident = "$Id: switchboard.java,v 1.7 2012/02/05 22:37:17 drmiller Exp $";
+	final String ident = "$Id: switchboard.java,v 1.8 2012/02/06 01:19:04 drmiller Exp $";
 	static final long serialVersionUID = 311000000002L;
 
 	static final int[] hex_top_x = { 20, 40, 46, 14, 10, 20 };
@@ -375,8 +407,10 @@ class Kellogg_Line extends JPanel
 	public void paint(Graphics g) {
 		super.paint(g);
 		if (_plugged) {
-			g.setColor(switchboard.jack_hole);
+			g.setColor(switchboard.plug);
 			g.fillOval(14,  0, 32, 30);
+			g.setColor(switchboard.plug_lt);
+			g.drawArc(16,  2, 28, 26, 110, 50);
 			g.setColor(switchboard.cord);
 			g.fillOval(23,  8, 14, 14);
 		} else {
@@ -444,7 +478,7 @@ class Kellogg_Line extends JPanel
 
 class Kellogg_LineWithDrop extends JPanel
 {
-	final String ident = "$Id: switchboard.java,v 1.7 2012/02/05 22:37:17 drmiller Exp $";
+	final String ident = "$Id: switchboard.java,v 1.8 2012/02/06 01:19:04 drmiller Exp $";
 	static final long serialVersionUID = 311000000004L;
 
 	private JPanel _parent;
@@ -501,7 +535,7 @@ class Kellogg_LineWithDrop extends JPanel
 class Kellogg_Plug extends JPanel
 	implements MouseListener
 {
-	final String ident = "$Id: switchboard.java,v 1.7 2012/02/05 22:37:17 drmiller Exp $";
+	final String ident = "$Id: switchboard.java,v 1.8 2012/02/06 01:19:04 drmiller Exp $";
 	static final long serialVersionUID = 311000000005L;
 	static final Point _center = new Point(40, 18);
 
@@ -518,17 +552,23 @@ class Kellogg_Plug extends JPanel
 			g.fillOval(22,  0, 36, 36);
 		}
 		if (_plugged) {
-			g.setColor(switchboard.jack_dk);
-			g.fillOval(25,  3, 30, 30);
+			g.setColor(switchboard.well_lt);
+			g.fillArc(25,  3, 30, 30, -135, 180);
+			g.setColor(switchboard.well_dk);
+			g.fillArc(25,  3, 30, 30, 45, 180);
+			g.setColor(switchboard.well);
+			g.fillOval(27,  5, 26, 26);
 			g.setColor(switchboard.cord);
 			g.fillOval(33, 11, 14, 14);
 		} else {
-			g.setColor(switchboard.jack_hole);
+			g.setColor(switchboard.plug);
 			g.fillOval(25,  3, 30, 30);
 			g.setColor(switchboard.jack_dk);
 			g.fillOval(31,  9, 18, 18);
 			g.setColor(switchboard.jack_face);
 			g.fillOval(33, 11, 14, 14);
+			g.setColor(switchboard.jack_lt);
+			g.fillArc(33, 11, 14, 14, 120, 30);
 			g.setColor(switchboard.jack_lt);
 			g.fillOval(38, 16, 4, 4);
 		}
@@ -589,7 +629,7 @@ class Kellogg_Plug extends JPanel
 class Kellogg_RingSw extends JPanel
 	implements MouseListener
 {
-	final String ident = "$Id: switchboard.java,v 1.7 2012/02/05 22:37:17 drmiller Exp $";
+	final String ident = "$Id: switchboard.java,v 1.8 2012/02/06 01:19:04 drmiller Exp $";
 	static final long serialVersionUID = 311000000007L;
 
 	private int _state;
@@ -650,7 +690,7 @@ class Kellogg_RingSw extends JPanel
 class Kellogg_ListenSw extends JPanel
 	implements MouseListener
 {
-	final String ident = "$Id: switchboard.java,v 1.7 2012/02/05 22:37:17 drmiller Exp $";
+	final String ident = "$Id: switchboard.java,v 1.8 2012/02/06 01:19:04 drmiller Exp $";
 	static final long serialVersionUID = 311000000006L;
 
 	private boolean _state;
@@ -696,7 +736,7 @@ class Kellogg_ListenSw extends JPanel
 
 class Kellogg_Circuit extends JPanel
 {
-	final String ident = "$Id: switchboard.java,v 1.7 2012/02/05 22:37:17 drmiller Exp $";
+	final String ident = "$Id: switchboard.java,v 1.8 2012/02/06 01:19:04 drmiller Exp $";
 	static final long serialVersionUID = 311000000008L;
 
 	private Kellogg_ListenSw _listen;
