@@ -1,5 +1,5 @@
 // Copyright (c) 2011,2012 Douglas Miller
-// $Id: switchboard.java,v 1.13 2012/02/06 17:58:14 drmiller Exp $
+// $Id: switchboard.java,v 1.14 2012/02/06 18:04:44 drmiller Exp $
 
 import java.awt.*;
 import javax.swing.*;
@@ -8,7 +8,7 @@ import java.util.Arrays;
 
 public class switchboard
 {
-	final String ident = "$Id: switchboard.java,v 1.13 2012/02/06 17:58:14 drmiller Exp $";
+	final String ident = "$Id: switchboard.java,v 1.14 2012/02/06 18:04:44 drmiller Exp $";
 
 	static final Color cabinet = new Color(165, 125, 14);
 
@@ -58,7 +58,7 @@ public class switchboard
 		FontMetrics font_metrics = front_end.getFontMetrics(font);
 
 		int num_lines = 20;
-		int num_circs = 4;
+		int num_circs = 8;
 
 		Kellogg_Cabinet cab = new Kellogg_Cabinet(num_lines, num_circs, font_metrics);
 		front_end.add(cab);
@@ -74,6 +74,8 @@ public class switchboard
 class Kellogg_Cabinet extends JPanel
 {
 	static final long serialVersionUID = 311000000010L;
+
+	public static final int circs_per_cab = 8;
 
 	private Kellogg_Plug _sel_plug;
 
@@ -98,6 +100,7 @@ class Kellogg_Cabinet extends JPanel
 
 	public Kellogg_Cabinet(int num_lines, int num_circs,
 			FontMetrics font_metrics) {
+		if (num_circs > circs_per_cab) num_circs = circs_per_cab;
 		_sel_plug = null;
 		_conn_plugs = new Kellogg_Plug[num_circs * 2];
 		_conn_lines = new Kellogg_Line[num_circs * 2];
@@ -276,7 +279,7 @@ class Kellogg_LinePanel extends JPanel
 class Kellogg_Drop extends JPanel
 	implements MouseListener
 {
-	final String ident = "$Id: switchboard.java,v 1.13 2012/02/06 17:58:14 drmiller Exp $";
+	final String ident = "$Id: switchboard.java,v 1.14 2012/02/06 18:04:44 drmiller Exp $";
 	static final long serialVersionUID = 311000000003L;
 
 	static final int[] shutter_x = { 40, 50, 50, 10, 10, 20, 40 };
@@ -383,7 +386,7 @@ class Kellogg_Drop extends JPanel
 class Kellogg_Line extends JPanel
 	implements MouseListener
 {
-	final String ident = "$Id: switchboard.java,v 1.13 2012/02/06 17:58:14 drmiller Exp $";
+	final String ident = "$Id: switchboard.java,v 1.14 2012/02/06 18:04:44 drmiller Exp $";
 	static final long serialVersionUID = 311000000002L;
 
 	static final int[] hex_top_x = { 20, 40, 46, 14, 10, 20 };
@@ -473,7 +476,7 @@ class Kellogg_Line extends JPanel
 
 class Kellogg_LineWithDrop extends JPanel
 {
-	final String ident = "$Id: switchboard.java,v 1.13 2012/02/06 17:58:14 drmiller Exp $";
+	final String ident = "$Id: switchboard.java,v 1.14 2012/02/06 18:04:44 drmiller Exp $";
 	static final long serialVersionUID = 311000000004L;
 
 	private JPanel _parent;
@@ -530,7 +533,7 @@ class Kellogg_LineWithDrop extends JPanel
 class Kellogg_Plug extends JPanel
 	implements MouseListener
 {
-	final String ident = "$Id: switchboard.java,v 1.13 2012/02/06 17:58:14 drmiller Exp $";
+	final String ident = "$Id: switchboard.java,v 1.14 2012/02/06 18:04:44 drmiller Exp $";
 	static final long serialVersionUID = 311000000005L;
 	static final Point _center = new Point(40, 18);
 
@@ -625,7 +628,7 @@ class Kellogg_Plug extends JPanel
 class Kellogg_RingSw extends JPanel
 	implements MouseListener
 {
-	final String ident = "$Id: switchboard.java,v 1.13 2012/02/06 17:58:14 drmiller Exp $";
+	final String ident = "$Id: switchboard.java,v 1.14 2012/02/06 18:04:44 drmiller Exp $";
 	static final long serialVersionUID = 311000000007L;
 
 	private int _state;
@@ -686,7 +689,7 @@ class Kellogg_RingSw extends JPanel
 class Kellogg_ListenSw extends JPanel
 	implements MouseListener
 {
-	final String ident = "$Id: switchboard.java,v 1.13 2012/02/06 17:58:14 drmiller Exp $";
+	final String ident = "$Id: switchboard.java,v 1.14 2012/02/06 18:04:44 drmiller Exp $";
 	static final long serialVersionUID = 311000000006L;
 
 	private boolean _state;
@@ -732,7 +735,7 @@ class Kellogg_ListenSw extends JPanel
 
 class Kellogg_Circuit extends JPanel
 {
-	final String ident = "$Id: switchboard.java,v 1.13 2012/02/06 17:58:14 drmiller Exp $";
+	final String ident = "$Id: switchboard.java,v 1.14 2012/02/06 18:04:44 drmiller Exp $";
 	static final long serialVersionUID = 311000000008L;
 
 	private Kellogg_ListenSw _listen;
@@ -772,7 +775,7 @@ class Kellogg_Circuit extends JPanel
 		s.gridheight = 1;
 		s.anchor = GridBagConstraints.CENTER;
 
-		JLabel lab = new JLabel("Answer");
+		JLabel lab = new JLabel("Ans");
 		lab.setFont(switchboard.font);
 		lab.setForeground(Color.black);
 		lab.setOpaque(false);
