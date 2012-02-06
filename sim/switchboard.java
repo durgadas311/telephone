@@ -1,15 +1,14 @@
 // Copyright (c) 2011,2012 Douglas Miller
-// $Id: switchboard.java,v 1.9 2012/02/06 15:35:36 drmiller Exp $
+// $Id: switchboard.java,v 1.10 2012/02/06 15:35:59 drmiller Exp $
 
 import java.awt.*;
 import javax.swing.*;
 import java.awt.event.*;
 import java.util.Arrays;
-import java.awt.geom.Point2D;
 
 public class switchboard
 {
-	final String ident = "$Id: switchboard.java,v 1.9 2012/02/06 15:35:36 drmiller Exp $";
+	final String ident = "$Id: switchboard.java,v 1.10 2012/02/06 15:35:59 drmiller Exp $";
 
 	static final Color cabinet = new Color(165, 125, 14);
 
@@ -276,7 +275,7 @@ class Kellogg_LinePanel extends JPanel
 class Kellogg_Drop extends JPanel
 	implements MouseListener
 {
-	final String ident = "$Id: switchboard.java,v 1.9 2012/02/06 15:35:36 drmiller Exp $";
+	final String ident = "$Id: switchboard.java,v 1.10 2012/02/06 15:35:59 drmiller Exp $";
 	static final long serialVersionUID = 311000000003L;
 
 	static final int[] shutter_x = { 40, 50, 50, 10, 10, 20, 40 };
@@ -383,7 +382,7 @@ class Kellogg_Drop extends JPanel
 class Kellogg_Line extends JPanel
 	implements MouseListener
 {
-	final String ident = "$Id: switchboard.java,v 1.9 2012/02/06 15:35:36 drmiller Exp $";
+	final String ident = "$Id: switchboard.java,v 1.10 2012/02/06 15:35:59 drmiller Exp $";
 	static final long serialVersionUID = 311000000002L;
 
 	static final int[] hex_top_x = { 20, 40, 46, 14, 10, 20 };
@@ -473,7 +472,7 @@ class Kellogg_Line extends JPanel
 
 class Kellogg_LineWithDrop extends JPanel
 {
-	final String ident = "$Id: switchboard.java,v 1.9 2012/02/06 15:35:36 drmiller Exp $";
+	final String ident = "$Id: switchboard.java,v 1.10 2012/02/06 15:35:59 drmiller Exp $";
 	static final long serialVersionUID = 311000000004L;
 
 	private JPanel _parent;
@@ -530,7 +529,7 @@ class Kellogg_LineWithDrop extends JPanel
 class Kellogg_Plug extends JPanel
 	implements MouseListener
 {
-	final String ident = "$Id: switchboard.java,v 1.9 2012/02/06 15:35:36 drmiller Exp $";
+	final String ident = "$Id: switchboard.java,v 1.10 2012/02/06 15:35:59 drmiller Exp $";
 	static final long serialVersionUID = 311000000005L;
 	static final Point _center = new Point(40, 18);
 
@@ -625,7 +624,7 @@ class Kellogg_Plug extends JPanel
 class Kellogg_RingSw extends JPanel
 	implements MouseListener
 {
-	final String ident = "$Id: switchboard.java,v 1.9 2012/02/06 15:35:36 drmiller Exp $";
+	final String ident = "$Id: switchboard.java,v 1.10 2012/02/06 15:35:59 drmiller Exp $";
 	static final long serialVersionUID = 311000000007L;
 
 	private int _state;
@@ -686,7 +685,7 @@ class Kellogg_RingSw extends JPanel
 class Kellogg_ListenSw extends JPanel
 	implements MouseListener
 {
-	final String ident = "$Id: switchboard.java,v 1.9 2012/02/06 15:35:36 drmiller Exp $";
+	final String ident = "$Id: switchboard.java,v 1.10 2012/02/06 15:35:59 drmiller Exp $";
 	static final long serialVersionUID = 311000000006L;
 
 	private boolean _state;
@@ -732,7 +731,7 @@ class Kellogg_ListenSw extends JPanel
 
 class Kellogg_Circuit extends JPanel
 {
-	final String ident = "$Id: switchboard.java,v 1.9 2012/02/06 15:35:36 drmiller Exp $";
+	final String ident = "$Id: switchboard.java,v 1.10 2012/02/06 15:35:59 drmiller Exp $";
 	static final long serialVersionUID = 311000000008L;
 
 	private Kellogg_ListenSw _listen;
