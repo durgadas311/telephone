@@ -1,5 +1,5 @@
 // Copyright (c) 2011,2012 Douglas Miller
-// $Id: switchboard.java,v 1.16 2012/02/06 23:08:57 drmiller Exp $
+// $Id: switchboard.java,v 1.17 2012/02/07 01:43:04 drmiller Exp $
 
 import java.awt.*;
 import javax.swing.*;
@@ -9,7 +9,7 @@ import javax.swing.Timer;
 
 public class switchboard
 {
-	final String ident = "$Id: switchboard.java,v 1.16 2012/02/06 23:08:57 drmiller Exp $";
+	final String ident = "$Id: switchboard.java,v 1.17 2012/02/07 01:43:04 drmiller Exp $";
 
 	static final Color cabinet = new Color(165, 125, 14);
 
@@ -300,10 +300,11 @@ class Kellogg_Magneto extends JPanel
 			x1 = _pos - 5;
 		}
 		g.fillRoundRect(x - 5, 25, 10, 20, 3, 3);
-//		if ((_angle & 0x08) != 0) {
-//			g.setColor(switchboard.jack_hole);
-//		}
 		g.fillRect(x1, 20, x2 - x1, 5);
+		g.setColor(switchboard.plug_lt);
+		g.fillArc(x - 4, 26, 6, 6, 90, 90);
+		g.drawLine(x - 4, 28, x - 4, 42);
+		g.drawLine(_pos - 4, 2, _pos - 4, 18);
 	}
 
 	public Kellogg_Magneto(Kellogg_Cabinet cab, int width) {
@@ -314,13 +315,13 @@ class Kellogg_Magneto extends JPanel
 		setPreferredSize(new Dimension(width, 50));
 		addMouseListener(this);
 		_angle = 0;
-		_timer = new Timer(20, this);
+		_timer = new Timer(50, this);
 		if (_cab == null) return;
 	}
 
 	public void actionPerformed(ActionEvent e) {
 		if (e.getSource() == _timer) {
-			_angle = (_angle + 1) & 0x1f;
+			_angle = (_angle + 2) & 0x1e;
 			repaint();
 		}
 	}
@@ -374,7 +375,7 @@ class Kellogg_LinePanel extends JPanel
 class Kellogg_Drop extends JPanel
 	implements MouseListener
 {
-	final String ident = "$Id: switchboard.java,v 1.16 2012/02/06 23:08:57 drmiller Exp $";
+	final String ident = "$Id: switchboard.java,v 1.17 2012/02/07 01:43:04 drmiller Exp $";
 	static final long serialVersionUID = 311000000003L;
 
 	static final int[] shutter_x = { 40, 50, 50, 10, 10, 20, 40 };
@@ -481,7 +482,7 @@ class Kellogg_Drop extends JPanel
 class Kellogg_Line extends JPanel
 	implements MouseListener
 {
-	final String ident = "$Id: switchboard.java,v 1.16 2012/02/06 23:08:57 drmiller Exp $";
+	final String ident = "$Id: switchboard.java,v 1.17 2012/02/07 01:43:04 drmiller Exp $";
 	static final long serialVersionUID = 311000000002L;
 
 	static final int[] hex_top_x = { 20, 40, 46, 14, 10, 20 };
@@ -571,7 +572,7 @@ class Kellogg_Line extends JPanel
 
 class Kellogg_LineWithDrop extends JPanel
 {
-	final String ident = "$Id: switchboard.java,v 1.16 2012/02/06 23:08:57 drmiller Exp $";
+	final String ident = "$Id: switchboard.java,v 1.17 2012/02/07 01:43:04 drmiller Exp $";
 	static final long serialVersionUID = 311000000004L;
 
 	private JPanel _parent;
@@ -628,7 +629,7 @@ class Kellogg_LineWithDrop extends JPanel
 class Kellogg_Plug extends JPanel
 	implements MouseListener
 {
-	final String ident = "$Id: switchboard.java,v 1.16 2012/02/06 23:08:57 drmiller Exp $";
+	final String ident = "$Id: switchboard.java,v 1.17 2012/02/07 01:43:04 drmiller Exp $";
 	static final long serialVersionUID = 311000000005L;
 	static final Point _center = new Point(40, 18);
 
@@ -723,7 +724,7 @@ class Kellogg_Plug extends JPanel
 class Kellogg_RingSw extends JPanel
 	implements MouseListener
 {
-	final String ident = "$Id: switchboard.java,v 1.16 2012/02/06 23:08:57 drmiller Exp $";
+	final String ident = "$Id: switchboard.java,v 1.17 2012/02/07 01:43:04 drmiller Exp $";
 	static final long serialVersionUID = 311000000007L;
 
 	private int _state;
@@ -737,14 +738,20 @@ class Kellogg_RingSw extends JPanel
 		g.setColor(switchboard.jack_hole);
 		if (_state > 0) {
 			// "Up" or "Pushed"... Ring Answer
-			g.fillOval(30, 0, 20, 20);
+			g.fillOval(30, 10, 20, 15);
+			g.fillOval(30, 0, 20, 15);
+			g.fillRect(30, 8, 20, 10);
 			g.setColor(switchboard.jack_lt);
-			g.drawArc(32, 2, 16, 16, 110, 50);
+			g.drawArc(32, 2, 16, 12, 110, 50);
+			g.drawLine(32, 8, 32, 19);
 		} else if (_state < 0) {
 			// "Down" or "Pulled" - Ring Call
-			g.fillOval(30, 20, 20, 20);
+			g.fillOval(30, 15, 20, 15);
+			g.fillOval(30, 25, 20, 15);
+			g.fillRect(30, 23, 20, 10);
 			g.setColor(switchboard.jack_lt);
-			g.drawArc(32, 22, 16, 16, 110, 50);
+			g.drawArc(32, 17, 16, 12, 135, 25);
+			g.drawLine(32, 23, 32, 34);
 		} else { // Off
 			g.fillOval(30, 10, 20, 20);
 			g.setColor(switchboard.jack_lt);
@@ -790,7 +797,7 @@ class Kellogg_RingSw extends JPanel
 class Kellogg_ListenSw extends JPanel
 	implements MouseListener
 {
-	final String ident = "$Id: switchboard.java,v 1.16 2012/02/06 23:08:57 drmiller Exp $";
+	final String ident = "$Id: switchboard.java,v 1.17 2012/02/07 01:43:04 drmiller Exp $";
 	static final long serialVersionUID = 311000000006L;
 
 	private boolean _state;
@@ -803,9 +810,12 @@ class Kellogg_ListenSw extends JPanel
 		g.fillRect(35, 20, 10, 20);
 		g.setColor(switchboard.jack_hole);
 		if (_state) {
-			g.fillOval(30, 0, 20, 20);
+			g.fillOval(30, 10, 20, 15);
+			g.fillOval(30, 0, 20, 15);
+			g.fillRect(30, 8, 20, 10);
 			g.setColor(switchboard.jack_lt);
-			g.drawArc(32, 2, 16, 16, 110, 50);
+			g.drawArc(32, 2, 16, 12, 110, 50);
+			g.drawLine(32, 8, 32, 19);
 		} else {
 			g.fillOval(30, 10, 20, 20);
 			g.setColor(switchboard.jack_lt);
@@ -840,7 +850,7 @@ class Kellogg_ListenSw extends JPanel
 
 class Kellogg_Circuit extends JPanel
 {
-	final String ident = "$Id: switchboard.java,v 1.16 2012/02/06 23:08:57 drmiller Exp $";
+	final String ident = "$Id: switchboard.java,v 1.17 2012/02/07 01:43:04 drmiller Exp $";
 	static final long serialVersionUID = 311000000008L;
 
 	private Kellogg_ListenSw _listen;
