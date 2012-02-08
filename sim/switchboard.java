@@ -1,5 +1,5 @@
 // Copyright (c) 2011,2012 Douglas Miller
-// $Id: switchboard.java,v 1.19 2012/02/08 15:59:02 drmiller Exp $
+// $Id: switchboard.java,v 1.20 2012/02/08 20:57:44 drmiller Exp $
 
 import java.awt.*;
 import javax.swing.*;
@@ -9,7 +9,7 @@ import javax.swing.Timer;
 
 public class switchboard
 {
-	final String ident = "$Id: switchboard.java,v 1.19 2012/02/08 15:59:02 drmiller Exp $";
+	final String ident = "$Id: switchboard.java,v 1.20 2012/02/08 20:57:44 drmiller Exp $";
 
 	static final Color cabinet = new Color(165, 125, 14);
 
@@ -315,6 +315,15 @@ class Kellogg_Cabinet extends JPanel
 		_sel_plug = plug;
 		_sel_plug.setSelect(true);
 	}
+
+	public void ring(boolean on) {
+		int i;
+		for (i = 0; i < _conn_plugs.length; ++i) {
+			if (_conn_lines[i] != null) {
+				_conn_lines[i].ring(on);
+			}
+		}
+	}
 }
 
 class Kellogg_Magneto extends JPanel
@@ -378,7 +387,6 @@ class Kellogg_Magneto extends JPanel
 		addMouseListener(this);
 		_angle = 0;
 		_timer = new Timer(50, this);
-		if (_cab == null) return;
 	}
 
 	public void actionPerformed(ActionEvent e) {
@@ -394,16 +402,18 @@ class Kellogg_Magneto extends JPanel
 
 	public void mousePressed(MouseEvent e) {
 		_timer.start();
+		_cab.ring(true);
 	}
 	public void mouseReleased(MouseEvent e) {
 		_timer.stop();
+		_cab.ring(false);
 	}
 }
 
 class Kellogg_Drop extends JPanel
 	implements MouseListener
 {
-	final String ident = "$Id: switchboard.java,v 1.19 2012/02/08 15:59:02 drmiller Exp $";
+	final String ident = "$Id: switchboard.java,v 1.20 2012/02/08 20:57:44 drmiller Exp $";
 	static final long serialVersionUID = 311000000003L;
 
 	static final int[] shutter_x = { 40, 50, 50, 10, 10, 20, 40 };
@@ -510,7 +520,7 @@ class Kellogg_Drop extends JPanel
 class Kellogg_Line extends JPanel
 	implements MouseListener
 {
-	final String ident = "$Id: switchboard.java,v 1.19 2012/02/08 15:59:02 drmiller Exp $";
+	final String ident = "$Id: switchboard.java,v 1.20 2012/02/08 20:57:44 drmiller Exp $";
 	static final long serialVersionUID = 311000000002L;
 
 	static final int[] hex_top_x = { 20, 40, 46, 14, 10, 20 };
@@ -525,6 +535,7 @@ class Kellogg_Line extends JPanel
 	private Kellogg_Drop _drop;
 	private Kellogg_Cabinet _cab;
 	private Kellogg_Plug _conn_plug;
+	private int _num;
 
 	public void paint(Graphics g) {
 		super.paint(g);
@@ -552,11 +563,13 @@ class Kellogg_Line extends JPanel
 		}
 	}
 
-	public Kellogg_Line(JPanel parent, Kellogg_Cabinet cab, Kellogg_Drop drop) {
+	public Kellogg_Line(JPanel parent, Kellogg_Cabinet cab,
+			int num, Kellogg_Drop drop) {
 		_parent = parent;
 		_cab = cab;
 		_drop = drop;
 		_conn_plug = null;
+		_num = num;
 		setPreferredSize(new Dimension(60, 40));
 		setOpaque(false);
 		setForeground(Color.black);
@@ -596,11 +609,18 @@ class Kellogg_Line extends JPanel
 			repaint();
 		}
 	}
+
+	public void ring(boolean on) {
+		if (_conn_plug != null && _conn_plug.isRingable()) {
+			// TBD: transmit RING to remote phone...
+System.err.println("remote "+_num+": RING "+on);
+		}
+	}
 }
 
 class Kellogg_LineWithDrop extends JPanel
 {
-	final String ident = "$Id: switchboard.java,v 1.19 2012/02/08 15:59:02 drmiller Exp $";
+	final String ident = "$Id: switchboard.java,v 1.20 2012/02/08 20:57:44 drmiller Exp $";
 	static final long serialVersionUID = 311000000004L;
 
 	private JPanel _parent;
@@ -611,7 +631,7 @@ class Kellogg_LineWithDrop extends JPanel
 			Kellogg_Cabinet cab, FontMetrics font_metrics) {
 		_parent = parent;
 		_drop = new Kellogg_Drop(num, 60, font_metrics);
-		_line = new Kellogg_Line(this, cab, _drop);
+		_line = new Kellogg_Line(this, cab, num, _drop);
 
 		GridBagLayout gridbag = new GridBagLayout();
 		setLayout(gridbag);
@@ -657,7 +677,7 @@ class Kellogg_LineWithDrop extends JPanel
 class Kellogg_Plug extends JPanel
 	implements MouseListener
 {
-	final String ident = "$Id: switchboard.java,v 1.19 2012/02/08 15:59:02 drmiller Exp $";
+	final String ident = "$Id: switchboard.java,v 1.20 2012/02/08 20:57:44 drmiller Exp $";
 	static final long serialVersionUID = 311000000005L;
 	static final Point _center = new Point(40, 18);
 
@@ -666,6 +686,8 @@ class Kellogg_Plug extends JPanel
 	private boolean _select;
 	private Kellogg_Cabinet _cab;
 	private Kellogg_Line _conn_line;
+	private int _ring_state;
+	private Kellogg_Circuit _circ;
 
 	public void paint(Graphics g) {
 		super.paint(g);
@@ -697,11 +719,14 @@ class Kellogg_Plug extends JPanel
 		}
 	}
 
-	public Kellogg_Plug(JPanel parent, Kellogg_Cabinet cab, Kellogg_Drop drop) {
+	public Kellogg_Plug(JPanel parent, Kellogg_Cabinet cab,
+			Kellogg_Drop drop, int ring) {
 		_co_drop = drop;
 		_parent = parent;
+		_circ = (Kellogg_Circuit)_parent; // for now, the same...
 		_cab = cab;
 		_conn_line = null;
+		_ring_state = ring;
 		setPreferredSize(new Dimension(75, 40));
 		setOpaque(false);
 		setForeground(Color.black);
@@ -747,13 +772,21 @@ class Kellogg_Plug extends JPanel
 			repaint();
 		}
 	}
+
+	public boolean isRingable() {
+		return (_circ.ringSw() == _ring_state);
+	}
 }
 
 class Kellogg_RingSw extends JPanel
 	implements MouseListener
 {
-	final String ident = "$Id: switchboard.java,v 1.19 2012/02/08 15:59:02 drmiller Exp $";
+	final String ident = "$Id: switchboard.java,v 1.20 2012/02/08 20:57:44 drmiller Exp $";
 	static final long serialVersionUID = 311000000007L;
+
+	public static final int PUSH = 1;
+	public static final int OFF = 0;
+	public static final int PULL = -1;
 
 	private int _state;
 
@@ -764,7 +797,7 @@ class Kellogg_RingSw extends JPanel
 		g.setColor(switchboard.jack_dk);
 		g.fillRect(35, 20, 10, 20);
 		g.setColor(switchboard.jack_hole);
-		if (_state > 0) {
+		if (_state == PUSH) {
 			// "Up" or "Pushed"... Ring Answer
 			g.fillOval(30, 10, 20, 15);
 			g.fillOval(30, 0, 20, 15);
@@ -772,7 +805,7 @@ class Kellogg_RingSw extends JPanel
 			g.setColor(switchboard.jack_lt);
 			g.drawArc(32, 2, 16, 12, 110, 50);
 			g.drawLine(32, 8, 32, 19);
-		} else if (_state < 0) {
+		} else if (_state == PULL) {
 			// "Down" or "Pulled" - Ring Call
 			g.fillOval(30, 15, 20, 15);
 			g.fillOval(30, 25, 20, 15);
@@ -780,7 +813,7 @@ class Kellogg_RingSw extends JPanel
 			g.setColor(switchboard.jack_lt);
 			g.drawArc(32, 17, 16, 12, 135, 25);
 			g.drawLine(32, 23, 32, 34);
-		} else { // Off
+		} else { // OFF
 			g.fillOval(30, 10, 20, 20);
 			g.setColor(switchboard.jack_lt);
 			g.drawArc(32, 12, 16, 16, 110, 50);
@@ -788,7 +821,7 @@ class Kellogg_RingSw extends JPanel
 	}
 
 	public Kellogg_RingSw() {
-		_state = 0;
+		_state = OFF;
 		setPreferredSize(new Dimension(75, 40));
 		setOpaque(false);
 		setForeground(Color.black);
@@ -798,18 +831,20 @@ class Kellogg_RingSw extends JPanel
 
 	public void setState(int b) {
 		int n = _state;
-		if (b == MouseEvent.BUTTON1) { // up...
+		if (b == MouseEvent.BUTTON1) { // up... PUSH
 			n += 1;
-			if (n > 1) n = 1;
+			if (n > PUSH) n = PUSH;
 		} else if (b == MouseEvent.BUTTON3) {
 			n -= 1;
-			if (n < -1) n = -1;
+			if (n < PULL) n = PULL;
 		}
 		if (_state != n) {
 			_state = n;
 			repaint();
 		}
 	}
+
+	public int getState() { return _state; }
 
 	public void mouseClicked(MouseEvent e) {
 		int b = e.getButton(); // 1=Left, 3=Right
@@ -825,7 +860,7 @@ class Kellogg_RingSw extends JPanel
 class Kellogg_ListenSw extends JPanel
 	implements MouseListener
 {
-	final String ident = "$Id: switchboard.java,v 1.19 2012/02/08 15:59:02 drmiller Exp $";
+	final String ident = "$Id: switchboard.java,v 1.20 2012/02/08 20:57:44 drmiller Exp $";
 	static final long serialVersionUID = 311000000006L;
 
 	private boolean _state;
@@ -878,7 +913,7 @@ class Kellogg_ListenSw extends JPanel
 
 class Kellogg_Circuit extends JPanel
 {
-	final String ident = "$Id: switchboard.java,v 1.19 2012/02/08 15:59:02 drmiller Exp $";
+	final String ident = "$Id: switchboard.java,v 1.20 2012/02/08 20:57:44 drmiller Exp $";
 	static final long serialVersionUID = 311000000008L;
 
 	private JPanel _parent;
@@ -905,8 +940,8 @@ class Kellogg_Circuit extends JPanel
 		_drop_call = drp_lo;
 		_listen = new Kellogg_ListenSw();
 		_ring = new Kellogg_RingSw();
-		_call = new Kellogg_Plug(this, cab, _drop_call);
-		_ans = new Kellogg_Plug(this, cab, _drop_ans);
+		_call = new Kellogg_Plug(this, cab, _drop_call, Kellogg_RingSw.PULL);
+		_ans = new Kellogg_Plug(this, cab, _drop_ans, Kellogg_RingSw.PUSH);
 
 		GridBagLayout gridbag = new GridBagLayout();
 		setLayout(gridbag);
@@ -1021,5 +1056,9 @@ class Kellogg_Circuit extends JPanel
 		p.x += m.x;
 		p.y += m.y;
 		return p;
+	}
+
+	public int ringSw() {
+		return _ring.getState();
 	}
 }
