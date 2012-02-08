@@ -1,15 +1,16 @@
 // Copyright (c) 2011,2012 Douglas Miller
-// $Id: switchboard.java,v 1.20 2012/02/08 20:57:44 drmiller Exp $
+// $Id: switchboard.java,v 1.21 2012/02/08 21:33:25 drmiller Exp $
 
 import java.awt.*;
 import javax.swing.*;
 import java.awt.event.*;
 import java.util.Arrays;
 import javax.swing.Timer;
+import javax.swing.border.*;
 
 public class switchboard
 {
-	final String ident = "$Id: switchboard.java,v 1.20 2012/02/08 20:57:44 drmiller Exp $";
+	final String ident = "$Id: switchboard.java,v 1.21 2012/02/08 21:33:25 drmiller Exp $";
 
 	static final Color cabinet = new Color(165, 125, 14);
 
@@ -64,7 +65,7 @@ public class switchboard
 		Kellogg_Cabinet cab = new Kellogg_Cabinet(num_lines, num_circs, font_metrics);
 		front_end.add(cab);
 
-		front_end.getContentPane().setBackground(cabinet);
+		front_end.getContentPane().setBackground(Color.gray);
 		front_end.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		front_end.setSize(1024,640);
 		front_end.pack();
@@ -123,47 +124,42 @@ class Kellogg_Cabinet extends JPanel
 		s.gridheight = 1;
 		s.anchor = GridBagConstraints.WEST;
 
+		JPanel upper = new JPanel();
+		GridBagLayout ugb = new GridBagLayout();
+		upper.setLayout(ugb);
+		upper.setOpaque(true);
+		upper.setBackground(switchboard.cabinet);
+		upper.setBorder(BorderFactory.createBevelBorder(BevelBorder.RAISED));
+
 		JPanel lp = makeLinePanel(num_lines, font_metrics);
 		s.gridx = 0;
 		s.gridy = 0;
 		s.gridwidth = 1;
 		s.gridheight = 1;
-		gridbag.setConstraints(lp, s);
-		add(lp);
-
-		JPanel pan = new JPanel();
-		pan.setOpaque(true);
-		pan.setBackground(Color.black);
-		pan.setPreferredSize(dim);
-		s.gridx = 0;
-		s.gridy = 1;
-		s.gridwidth = 1;
-		s.gridheight = 1;
-		gridbag.setConstraints(pan, s);
-		add(pan);
+		ugb.setConstraints(lp, s);
+		upper.add(lp);
 
 		JPanel circs = new JPanel();
 		JPanel ro = makeRODropCircPanel(circs, num_circs, font_metrics);
 		s.gridx = 0;
-		s.gridy = 2;
+		s.gridy = 1;
 		s.gridwidth = 1;
 		s.gridheight = 1;
-		gridbag.setConstraints(ro, s);
-		add(ro);
+		ugb.setConstraints(ro, s);
+		upper.add(ro);
 
-		pan = new JPanel();
-		pan.setOpaque(true);
-		pan.setBackground(Color.black);
-		pan.setPreferredSize(dim);
 		s.gridx = 0;
-		s.gridy = 3;
+		s.gridy = 0;
 		s.gridwidth = 1;
 		s.gridheight = 1;
-		gridbag.setConstraints(pan, s);
-		add(pan);
+		gridbag.setConstraints(upper, s);
+		add(upper);
 
+		circs.setOpaque(true);
+		circs.setBackground(switchboard.cabinet);
+		circs.setBorder(BorderFactory.createBevelBorder(BevelBorder.RAISED));
 		s.gridx = 0;
-		s.gridy = 4;
+		s.gridy = 1;
 		s.gridwidth = 1;
 		s.gridheight = 1;
 		gridbag.setConstraints(circs, s);
@@ -381,8 +377,9 @@ class Kellogg_Magneto extends JPanel
 	public Kellogg_Magneto(Kellogg_Cabinet cab, int width) {
 		_cab = cab;
 		_pos = width - 50;
-		setOpaque(true);
-		setBackground(Color.gray);
+		setOpaque(false);
+		//setOpaque(true);
+		//setBackground(Color.gray);
 		setPreferredSize(new Dimension(width, 50));
 		addMouseListener(this);
 		_angle = 0;
@@ -413,7 +410,7 @@ class Kellogg_Magneto extends JPanel
 class Kellogg_Drop extends JPanel
 	implements MouseListener
 {
-	final String ident = "$Id: switchboard.java,v 1.20 2012/02/08 20:57:44 drmiller Exp $";
+	final String ident = "$Id: switchboard.java,v 1.21 2012/02/08 21:33:25 drmiller Exp $";
 	static final long serialVersionUID = 311000000003L;
 
 	static final int[] shutter_x = { 40, 50, 50, 10, 10, 20, 40 };
@@ -520,7 +517,7 @@ class Kellogg_Drop extends JPanel
 class Kellogg_Line extends JPanel
 	implements MouseListener
 {
-	final String ident = "$Id: switchboard.java,v 1.20 2012/02/08 20:57:44 drmiller Exp $";
+	final String ident = "$Id: switchboard.java,v 1.21 2012/02/08 21:33:25 drmiller Exp $";
 	static final long serialVersionUID = 311000000002L;
 
 	static final int[] hex_top_x = { 20, 40, 46, 14, 10, 20 };
@@ -620,7 +617,7 @@ System.err.println("remote "+_num+": RING "+on);
 
 class Kellogg_LineWithDrop extends JPanel
 {
-	final String ident = "$Id: switchboard.java,v 1.20 2012/02/08 20:57:44 drmiller Exp $";
+	final String ident = "$Id: switchboard.java,v 1.21 2012/02/08 21:33:25 drmiller Exp $";
 	static final long serialVersionUID = 311000000004L;
 
 	private JPanel _parent;
@@ -677,7 +674,7 @@ class Kellogg_LineWithDrop extends JPanel
 class Kellogg_Plug extends JPanel
 	implements MouseListener
 {
-	final String ident = "$Id: switchboard.java,v 1.20 2012/02/08 20:57:44 drmiller Exp $";
+	final String ident = "$Id: switchboard.java,v 1.21 2012/02/08 21:33:25 drmiller Exp $";
 	static final long serialVersionUID = 311000000005L;
 	static final Point _center = new Point(40, 18);
 
@@ -781,7 +778,7 @@ class Kellogg_Plug extends JPanel
 class Kellogg_RingSw extends JPanel
 	implements MouseListener
 {
-	final String ident = "$Id: switchboard.java,v 1.20 2012/02/08 20:57:44 drmiller Exp $";
+	final String ident = "$Id: switchboard.java,v 1.21 2012/02/08 21:33:25 drmiller Exp $";
 	static final long serialVersionUID = 311000000007L;
 
 	public static final int PUSH = 1;
@@ -860,7 +857,7 @@ class Kellogg_RingSw extends JPanel
 class Kellogg_ListenSw extends JPanel
 	implements MouseListener
 {
-	final String ident = "$Id: switchboard.java,v 1.20 2012/02/08 20:57:44 drmiller Exp $";
+	final String ident = "$Id: switchboard.java,v 1.21 2012/02/08 21:33:25 drmiller Exp $";
 	static final long serialVersionUID = 311000000006L;
 
 	private boolean _state;
@@ -913,7 +910,7 @@ class Kellogg_ListenSw extends JPanel
 
 class Kellogg_Circuit extends JPanel
 {
-	final String ident = "$Id: switchboard.java,v 1.20 2012/02/08 20:57:44 drmiller Exp $";
+	final String ident = "$Id: switchboard.java,v 1.21 2012/02/08 21:33:25 drmiller Exp $";
 	static final long serialVersionUID = 311000000008L;
 
 	private JPanel _parent;
