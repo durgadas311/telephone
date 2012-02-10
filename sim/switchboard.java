@@ -1,5 +1,5 @@
 // Copyright (c) 2011,2012 Douglas Miller
-// $Id: switchboard.java,v 1.24 2012/02/10 21:03:25 drmiller Exp $
+// $Id: switchboard.java,v 1.25 2012/02/10 22:33:16 drmiller Exp $
 
 import java.awt.*;
 import javax.swing.*;
@@ -10,7 +10,7 @@ import javax.swing.border.*;
 
 public class switchboard
 {
-	final String ident = "$Id: switchboard.java,v 1.24 2012/02/10 21:03:25 drmiller Exp $";
+	final String ident = "$Id: switchboard.java,v 1.25 2012/02/10 22:33:16 drmiller Exp $";
 
 	static final Color cabinet = new Color(165, 125, 14);
 
@@ -50,6 +50,7 @@ public class switchboard
 	static final Color cord = new Color(151, 111, 0);
 
 	static final Font font = new Font("Serif", Font.PLAIN, 18);
+	static final Font font2 = new Font("Serif", Font.PLAIN, 12);
 
 	public static void main(String[] args) {
 
@@ -119,6 +120,9 @@ class Kellogg_Cabinet extends JLayeredPane
 	{
 		static final long serialVersionUID = 311000000012L;
 
+		private final int[] tip_x = { 0, 5, 9,14, 0 };
+		private final int[] tip_y = { 0,-7,-7, 0, 0 };
+
 		public void paint(Graphics g) {
 			Graphics2D g2d = (Graphics2D)g;
 			super.paint(g2d);
@@ -132,6 +136,40 @@ class Kellogg_Cabinet extends JLayeredPane
 					Point l = _conn_lines[i].getCoords();
 					g2d.drawLine(p.x, p.y, l.x, l.y);
 				}
+			}
+			if (_sel_plug != null) {
+				Point p = _sel_plug.getCoords();
+				Point l = new Point(p);
+				if (p.x < 300) {
+					l.x += 20;
+				} else {
+					l.x -= 20;
+				}
+				l.y -= 20;
+				g2d.fillRect(l.x - 7, l.y - 8, 14, 8);
+				g2d.fillOval(l.x - 6, l.y - 6, 12, 12);
+				g2d.drawLine(p.x, p.y, l.x, l.y);
+				g2d.setStroke(new BasicStroke((float)1.0,
+					BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER));
+				g2d.setColor(switchboard.plug);
+				g2d.fillRect(l.x - 15, l.y - 64, 30, 56);
+				g2d.fillRect(l.x - 7, l.y - 103, 14, 3);
+				g2d.setColor(switchboard.jack_face);
+				g2d.fillRect(l.x - 7, l.y - 100, 14, 36);
+				g2d.fillRect(l.x - 7, l.y - 106, 14, 3);
+				g2d.fillRect(l.x - 7, l.y - 112, 14, 3);
+				Polygon pp = new Polygon(tip_x, tip_y, 4);
+				pp.translate(l.x - 7, l.y - 112);
+				g2d.fillPolygon(pp);
+				g2d.setColor(switchboard.plug_lt);
+				g2d.drawLine(l.x - 13, l.y - 63, l.x - 13, l.y - 10);
+				g2d.setColor(switchboard.jack_lt);
+				g2d.drawLine(l.x - 5, l.y - 99, l.x - 5, l.y - 65);
+				g2d.fillRect(l.x - 5, l.y - 112, 2, 2);
+				g2d.setColor(switchboard.jack_dk);
+				g2d.fillRect(l.x - 5, l.y - 109, 10, 3);
+				g2d.drawLine(l.x + 5, l.y - 99, l.x + 5, l.y - 65);
+				g2d.fillRect(l.x + 5, l.y - 112, 2, 2);
 			}
 		}
 
@@ -386,11 +424,13 @@ class Kellogg_Cabinet extends JLayeredPane
 			_sel_plug.setSelect(false);
 			if (_sel_plug == plug) {
 				_sel_plug = null;
+				repaint();
 				return;
 			}
 		}
 		_sel_plug = plug;
 		_sel_plug.setSelect(true);
+		repaint();
 	}
 
 	public void ring(boolean on) {
@@ -499,7 +539,7 @@ class Kellogg_Magneto extends JPanel
 class Kellogg_Drop extends JPanel
 	implements MouseListener
 {
-	final String ident = "$Id: switchboard.java,v 1.24 2012/02/10 21:03:25 drmiller Exp $";
+	final String ident = "$Id: switchboard.java,v 1.25 2012/02/10 22:33:16 drmiller Exp $";
 	static final long serialVersionUID = 311000000003L;
 	public static final int obj_width = 60;
 	public static final int obj_height = 60;
@@ -608,7 +648,7 @@ class Kellogg_Drop extends JPanel
 class Kellogg_Line extends JPanel
 	implements MouseListener
 {
-	final String ident = "$Id: switchboard.java,v 1.24 2012/02/10 21:03:25 drmiller Exp $";
+	final String ident = "$Id: switchboard.java,v 1.25 2012/02/10 22:33:16 drmiller Exp $";
 	static final long serialVersionUID = 311000000002L;
 	public static final int obj_width = 60;
 	public static final int obj_height = 40;
@@ -710,7 +750,7 @@ System.err.println("remote "+_num+": RING "+on);
 
 class Kellogg_LineWithDrop extends JPanel
 {
-	final String ident = "$Id: switchboard.java,v 1.24 2012/02/10 21:03:25 drmiller Exp $";
+	final String ident = "$Id: switchboard.java,v 1.25 2012/02/10 22:33:16 drmiller Exp $";
 	static final long serialVersionUID = 311000000004L;
 	public static final int obj_width = 60;
 	public static final int obj_height =
@@ -770,7 +810,7 @@ class Kellogg_LineWithDrop extends JPanel
 class Kellogg_Plug extends JPanel
 	implements MouseListener
 {
-	final String ident = "$Id: switchboard.java,v 1.24 2012/02/10 21:03:25 drmiller Exp $";
+	final String ident = "$Id: switchboard.java,v 1.25 2012/02/10 22:33:16 drmiller Exp $";
 	static final long serialVersionUID = 311000000005L;
 	public static final int obj_width = 75;
 	public static final int obj_height = 40;
@@ -786,11 +826,7 @@ class Kellogg_Plug extends JPanel
 
 	public void paint(Graphics g) {
 		super.paint(g);
-		if (_select) {
-			g.setColor(Color.yellow);
-			g.fillOval(22,  0, 36, 36);
-		}
-		if (_conn_line != null) {
+		if (_select || _conn_line != null) {
 			g.setColor(switchboard.well_lt);
 			g.fillArc(25,  3, 30, 30, -135, 180);
 			g.setColor(switchboard.well_dk);
@@ -876,50 +912,57 @@ class Kellogg_Plug extends JPanel
 class Kellogg_RingSw extends JPanel
 	implements MouseListener, KeyListener
 {
-	final String ident = "$Id: switchboard.java,v 1.24 2012/02/10 21:03:25 drmiller Exp $";
+	final String ident = "$Id: switchboard.java,v 1.25 2012/02/10 22:33:16 drmiller Exp $";
 	static final long serialVersionUID = 311000000007L;
 	public static final int obj_width = 75;
-	public static final int obj_height = 60;
+	public static final int obj_height = 66;
 
 	public static final int PUSH = 1;
 	public static final int OFF = 0;
 	public static final int PULL = -1;
 
+	private static final String _tag1 = "Ring-back";
+	private static final int _tag1_x = 10;
+	private static final String _tag2 = "Ring";
+	private static final int _tag2_x = 25;
+
 	private int _state;
 
 	public void paint(Graphics g) {
 		super.paint(g);
+		g.drawString(_tag1, _tag1_x, 9);
+		g.drawString(_tag2, _tag2_x, 63);
 		if (_state == PUSH) {
 			// "Up" or "Pushed"... Ring Answer
 			g.setColor(switchboard.jack_dk);
-			g.fillRect(35, 20, 10, 30);
+			g.fillRect(35, 22, 10, 30);
 			g.setColor(switchboard.jack_hole);
-			g.fillOval(30, 10, 20, 15);
-			g.fillOval(30, 0, 20, 15);
-			g.fillRect(30, 8, 20, 10);
+			g.fillOval(30, 12, 20, 15);
+			g.fillOval(30, 2, 20, 15);
+			g.fillRect(30, 10, 20, 10);
 			g.setColor(switchboard.jack_lt);
-			g.drawArc(32, 2, 16, 12, 110, 50);
-			g.drawLine(32, 8, 32, 19);
+			g.drawArc(32, 4, 16, 12, 110, 50);
+			g.drawLine(32, 10, 32, 21);
 		} else if (_state == PULL) {
 			// "Down" or "Pulled" - Ring Call
 			g.setColor(switchboard.jack_lt);
-			g.fillRect(35, 10, 10, 30);
+			g.fillRect(35, 12, 10, 30);
 			g.setColor(switchboard.jack_hole);
-			g.fillOval(30, 35, 20, 15);
-			g.fillOval(30, 45, 20, 15);
-			g.fillRect(30, 43, 20, 10);
+			g.fillOval(30, 37, 20, 15);
+			g.fillOval(30, 47, 20, 15);
+			g.fillRect(30, 45, 20, 10);
 			g.setColor(switchboard.jack_lt);
-			g.drawArc(32, 37, 16, 12, 135, 25);
-			g.drawLine(32, 43, 32, 54);
+			g.drawArc(32, 39, 16, 12, 135, 25);
+			g.drawLine(32, 45, 32, 56);
 		} else { // OFF
 			g.setColor(switchboard.jack_lt);
-			g.fillRect(35, 10, 10, 20);
+			g.fillRect(35, 12, 10, 20);
 			g.setColor(switchboard.jack_dk);
-			g.fillRect(35, 30, 10, 20);
+			g.fillRect(35, 32, 10, 20);
 			g.setColor(switchboard.jack_hole);
-			g.fillOval(30, 20, 20, 20);
+			g.fillOval(30, 22, 20, 20);
 			g.setColor(switchboard.jack_lt);
-			g.drawArc(32, 22, 16, 16, 110, 50);
+			g.drawArc(32, 24, 16, 16, 110, 50);
 		}
 	}
 
@@ -928,7 +971,7 @@ class Kellogg_RingSw extends JPanel
 		setPreferredSize(new Dimension(obj_width, obj_height));
 		setOpaque(false);
 		setForeground(Color.black);
-		setFont(switchboard.font);
+		setFont(switchboard.font2);
 		addMouseListener(this);
 		top.addKeyListener(this);
 	}
@@ -979,34 +1022,37 @@ class Kellogg_RingSw extends JPanel
 class Kellogg_ListenSw extends JPanel
 	implements MouseListener
 {
-	final String ident = "$Id: switchboard.java,v 1.24 2012/02/10 21:03:25 drmiller Exp $";
+	final String ident = "$Id: switchboard.java,v 1.25 2012/02/10 22:33:16 drmiller Exp $";
 	static final long serialVersionUID = 311000000006L;
 	public static final int obj_width = 75;
-	public static final int obj_height = 60;
+	public static final int obj_height = 64;
 
 	private boolean _state;
+	private static final String _tag = "Listen";
+	private static final int _tag_x = 20;
 
 	public void paint(Graphics g) {
 		super.paint(g);
+		g.drawString(_tag, _tag_x, 9);
 		if (_state) {
 			g.setColor(switchboard.jack_dk);
-			g.fillRect(35, 20, 10, 30);
+			g.fillRect(35, 22, 10, 30);
 			g.setColor(switchboard.jack_hole);
-			g.fillOval(30, 10, 20, 15);
-			g.fillOval(30, 0, 20, 15);
-			g.fillRect(30, 8, 20, 10);
+			g.fillOval(30, 12, 20, 15);
+			g.fillOval(30, 2, 20, 15);
+			g.fillRect(30, 10, 20, 10);
 			g.setColor(switchboard.jack_lt);
-			g.drawArc(32, 2, 16, 12, 110, 50);
-			g.drawLine(32, 8, 32, 19);
+			g.drawArc(32, 4, 16, 12, 110, 50);
+			g.drawLine(32, 10, 32, 21);
 		} else {
 			g.setColor(switchboard.jack_lt);
-			g.fillRect(35, 10, 10, 20);
+			g.fillRect(35, 12, 10, 20);
 			g.setColor(switchboard.jack_dk);
-			g.fillRect(35, 30, 10, 20);
+			g.fillRect(35, 32, 10, 20);
 			g.setColor(switchboard.jack_hole);
-			g.fillOval(30, 20, 20, 20);
+			g.fillOval(30, 22, 20, 20);
 			g.setColor(switchboard.jack_lt);
-			g.drawArc(32, 22, 16, 16, 110, 50);
+			g.drawArc(32, 24, 16, 16, 110, 50);
 		}
 	}
 
@@ -1014,7 +1060,7 @@ class Kellogg_ListenSw extends JPanel
 		setPreferredSize(new Dimension(obj_width, obj_height));
 		setOpaque(false);
 		setForeground(Color.black);
-		setFont(switchboard.font);
+		setFont(switchboard.font2);
 		addMouseListener(this);
 	}
 
@@ -1037,16 +1083,15 @@ class Kellogg_ListenSw extends JPanel
 
 class Kellogg_Circuit extends JPanel
 {
-	final String ident = "$Id: switchboard.java,v 1.24 2012/02/10 21:03:25 drmiller Exp $";
+	final String ident = "$Id: switchboard.java,v 1.25 2012/02/10 22:33:16 drmiller Exp $";
 	static final long serialVersionUID = 311000000008L;
-	public static final int plug_lab_height = 20;
-	public static final int sw_lab_height = 18;
+	public static final int plug_lab_height = 25;
 	public static final int obj_width = 75;
 	public static final int obj_height =
 		2 * Kellogg_Plug.obj_height +
 		Kellogg_RingSw.obj_height +
 		Kellogg_ListenSw.obj_height +
-		3 * plug_lab_height + 3 * sw_lab_height;
+		2 * plug_lab_height;
 
 	private JPanel _parent;
 	private Kellogg_ListenSw _listen;
@@ -1055,6 +1100,7 @@ class Kellogg_Circuit extends JPanel
 	private Kellogg_Plug _ans;
 	private Kellogg_Drop _drop_call;
 	private Kellogg_Drop _drop_ans;
+	private int _num;
 
 	// R.O.Drop  [upper](originator attn signal)
 	// R.O.Drop  [lower](target attn signal)
@@ -1067,6 +1113,7 @@ class Kellogg_Circuit extends JPanel
 			Kellogg_Drop drp_up, Kellogg_Drop drp_lo,
 			Component top, FontMetrics font_metrics) {
 		if (font_metrics.stringWidth("damn warnings") < 0) return;
+		_num = num;
 		_parent = parent;
 		_drop_ans = drp_up;
 		_drop_call = drp_lo;
@@ -1088,7 +1135,7 @@ class Kellogg_Circuit extends JPanel
 		s.anchor = GridBagConstraints.CENTER;
 
 		JLabel lab = new JLabel("Ans");
-		lab.setFont(switchboard.font);
+		lab.setFont(switchboard.font2);
 		lab.setForeground(Color.black);
 		lab.setOpaque(false);
 		s.gridx = 0;
@@ -1105,7 +1152,7 @@ class Kellogg_Circuit extends JPanel
 		add(_ans);
 
 		lab = new JLabel("Call");
-		lab.setFont(switchboard.font);
+		lab.setFont(switchboard.font2);
 		lab.setForeground(Color.black);
 		lab.setOpaque(false);
 		s.gridx = 0;
@@ -1121,60 +1168,37 @@ class Kellogg_Circuit extends JPanel
 		gridbag.setConstraints(_call, s);
 		add(_call);
 
-		lab = new JLabel("<HTML><FONT SIZE=-2>Ring-back</FONT></HTML>");
-		lab.setFont(switchboard.font);
-		lab.setForeground(Color.black);
-		lab.setOpaque(false);
+		JPanel pan = new JPanel();
+		pan.setPreferredSize(new Dimension(obj_width, 10));
+		pan.setOpaque(false);
 		s.gridx = 0;
 		s.gridy = 4;
 		s.gridwidth = 1;
 		s.gridheight = 1;
-		gridbag.setConstraints(lab, s);
-		add(lab);
+		gridbag.setConstraints(pan, s);
+		add(pan);
 		s.gridx = 0;
 		s.gridy = 5;
 		s.gridwidth = 1;
 		s.gridheight = 1;
 		gridbag.setConstraints(_ring, s);
 		add(_ring);
-		lab = new JLabel("<HTML><FONT SIZE=-2>Ring</FONT></HTML>");
-		lab.setFont(switchboard.font);
-		lab.setForeground(Color.black);
-		lab.setOpaque(false);
-		s.gridx = 0;
-		s.gridy = 6;
-		s.gridwidth = 1;
-		s.gridheight = 1;
-		gridbag.setConstraints(lab, s);
-		add(lab);
 
-		lab = new JLabel("<HTML><FONT SIZE=-2>Listen</FONT></HTML>");
-		lab.setFont(switchboard.font);
-		lab.setForeground(Color.black);
-		lab.setOpaque(false);
+		pan = new JPanel();
+		pan.setOpaque(false);
+		pan.setPreferredSize(new Dimension(obj_width, 10));
 		s.gridx = 0;
 		s.gridy = 7;
 		s.gridwidth = 1;
 		s.gridheight = 1;
-		gridbag.setConstraints(lab, s);
-		add(lab);
+		gridbag.setConstraints(pan, s);
+		add(pan);
 		s.gridx = 0;
 		s.gridy = 8;
 		s.gridwidth = 1;
 		s.gridheight = 1;
 		gridbag.setConstraints(_listen, s);
 		add(_listen);
-
-		lab = new JLabel(Integer.toString(num));
-		lab.setForeground(Color.black);
-		lab.setOpaque(false);
-		lab.setFont(switchboard.font);
-		s.gridx = 0;
-		s.gridy = 9;
-		s.gridwidth = 1;
-		s.gridheight = 1;
-		gridbag.setConstraints(lab, s);
-		add(lab);
 
 		setPreferredSize(new Dimension(obj_width, obj_height));
 		setOpaque(false);
@@ -1192,5 +1216,9 @@ class Kellogg_Circuit extends JPanel
 
 	public int ringSw() {
 		return _ring.getState();
+	}
+
+	public int getId() {
+		return _num;
 	}
 }
