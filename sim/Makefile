@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.2 2012/02/06 15:09:17 drmiller Exp $
+# $Id: Makefile,v 1.3 2012/02/10 22:53:21 drmiller Exp $
 
 switchboard.class: switchboard.java
 	javac switchboard.java
@@ -11,3 +11,9 @@ switchboard.jar: switchboard.class Manifest.txt
 Manifest.txt:
 	echo "Main-Class: switchboard" >$@
 
+
+www: _FRC_
+	mkdir -p /http/durgadas.com/tele-sb-sim
+	cp www/*.html www/*.png /http/durgadas.com/tele-sb-sim
+
+_FRC_:
