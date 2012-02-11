@@ -1,5 +1,5 @@
 // Copyright (c) 2011,2012 Douglas Miller
-// $Id: telephone.java,v 1.1 2012/02/11 16:24:21 drmiller Exp $
+// $Id: telephone.java,v 1.2 2012/02/11 21:57:58 drmiller Exp $
 
 import java.awt.*;
 import javax.swing.*;
@@ -11,7 +11,7 @@ import java.io.*;
 
 public class telephone
 {
-	final String ident = "$Id: telephone.java,v 1.1 2012/02/11 16:24:21 drmiller Exp $";
+	final String ident = "$Id: telephone.java,v 1.2 2012/02/11 21:57:58 drmiller Exp $";
 
 	static final Color cabinet = new Color(165, 125, 14);
 
@@ -35,6 +35,7 @@ public class telephone
 	static final Color jack_hole = new Color(20, 20, 20);
 
 	static final Color plug = new Color(0, 0, 0);
+	static final Color plug_sun = new Color(80, 80, 80);
 	static final Color plug_lt = new Color(190, 190, 190);
 	static final Color plug_dk = new Color(0, 0, 0);
 
@@ -84,7 +85,7 @@ public class telephone
 	}
 }
 
-class StrombergCarlson_Cabinet extends JPanel // JLayeredPane
+class StrombergCarlson_Cabinet extends JPanel
 		implements Runnable
 {
 	static final long serialVersionUID = 311000000010L;
@@ -113,11 +114,9 @@ class StrombergCarlson_Cabinet extends JPanel // JLayeredPane
 		if (top == null) return; // damn warnings
 		if (font_metrics == null) return; // damn warnings
 
-//		JPanel base = new JPanel();
-JPanel base = this;
 		GridBagLayout gridbag = new GridBagLayout();
-		base.setLayout(gridbag);
-		base.setOpaque(false);
+		setLayout(gridbag);
+		setOpaque(false);
 		GridBagConstraints s = new GridBagConstraints();
 		s.fill = GridBagConstraints.NONE;
 		s.gridx = 0;
@@ -135,7 +134,14 @@ JPanel base = this;
 		upper.setBackground(telephone.cabinet);
 		upper.setBorder(BorderFactory.createBevelBorder(BevelBorder.RAISED,
 					telephone.well_lt, telephone.well_dk));
-upper.setPreferredSize(new Dimension(110, 210));
+		Dimension dim;
+		dim = new Dimension(StrombergCarlson_Shelf.obj_width +
+				2 * border_size,
+				StrombergCarlson_Bell.obj_height +
+				StrombergCarlson_Trans.obj_height +
+				StrombergCarlson_Shelf.obj_height +
+				20 + 20 + 2 *border_size);
+		upper.setPreferredSize(dim);
 
 		_bell = new StrombergCarlson_Bell();
 		s.gridx = 0;
@@ -153,6 +159,7 @@ upper.setPreferredSize(new Dimension(110, 210));
 		s.gridy = 1;
 		s.gridwidth = 1;
 		s.gridheight = 1;
+		s.anchor = GridBagConstraints.CENTER;
 		ugb.setConstraints(pan, s);
 		upper.add(pan);
 
@@ -172,6 +179,7 @@ upper.setPreferredSize(new Dimension(110, 210));
 		s.gridy = 3;
 		s.gridwidth = 1;
 		s.gridheight = 1;
+		s.anchor = GridBagConstraints.CENTER;
 		ugb.setConstraints(pan, s);
 		upper.add(pan);
 
@@ -184,42 +192,47 @@ upper.setPreferredSize(new Dimension(110, 210));
 		ugb.setConstraints(_shelf, s);
 		upper.add(_shelf);
 
-		s.anchor = GridBagConstraints.CENTER;
 		s.gridx = 1;
 		s.gridy = 0;
 		s.gridwidth = 1;
-		s.gridheight = 1;
+		s.gridheight = 2;
+		s.anchor = GridBagConstraints.CENTER;
 		gridbag.setConstraints(upper, s);
-		base.add(upper);
+		add(upper);
 
-		_rec = new StrombergCarlson_Rec(_shelf);
+		pan = new JPanel();
+		pan.setOpaque(false);
+		pan.setPreferredSize(new Dimension(20, 20));
 		s.gridx = 0;
 		s.gridy = 0;
 		s.gridwidth = 1;
 		s.gridheight = 1;
+		s.anchor = GridBagConstraints.CENTER;
+		gridbag.setConstraints(pan, s);
+		add(pan);
+
+		_rec = new StrombergCarlson_Rec(_shelf);
+		s.gridx = 0;
+		s.gridy = 1;
+		s.gridwidth = 1;
+		s.gridheight = 1;
+		s.anchor = GridBagConstraints.NORTH;
 		gridbag.setConstraints(_rec, s);
-		base.add(_rec);
+		add(_rec);
 
 		StrombergCarlson_Magneto mag = new StrombergCarlson_Magneto(this);
 		s.gridx = 2;
 		s.gridy = 0;
 		s.gridwidth = 1;
-		s.gridheight = 1;
+		s.gridheight = 2;
+		s.anchor = GridBagConstraints.CENTER;
 		gridbag.setConstraints(mag, s);
-		base.add(mag);
+		add(mag);
 
-//		Dimension dim = new Dimension(StrombergCarlson_Shelf.obj_width +
-//					StrombergCarlson_Rec.obj_width +
-//					StrombergCarlson_Magneto.obj_width,
-//					600);
-Dimension dim = new Dimension(250, 250);
-		base.setPreferredSize(dim);
-
-//		add(base, new Integer(10));
-
-//		setPreferredSize(dim);
-//		setOpaque(false);
-//		setForeground(Color.red);
+		Dimension dim2 = new Dimension(dim);
+		dim2.width += StrombergCarlson_Rec.obj_width +
+				StrombergCarlson_Magneto.obj_width;
+		setPreferredSize(dim2);
 
 		_buf = new byte[128];
 
@@ -358,24 +371,51 @@ class StrombergCarlson_Rec extends JPanel
 	implements MouseListener
 {
 	static final long serialVersionUID = 311000000005L;
-	public static final int obj_width = 60;
-	public static final int obj_height = 100;
+	public static final int obj_width = 50;
+	public static final int obj_height = 85;
 
 	private boolean _off_hook;
 	private StrombergCarlson_Shelf _shelf;
+	private static final int[] rec_x = { 13, 21, 39, 47, 44, 16, 13 };
+	private static final int[] rec_y = { 71, 64, 64, 71, 85, 85, 71 };
 
 	public void paint(Graphics g) {
-		super.paint(g);
+		Graphics2D g2d = (Graphics2D)g;
+		super.paint(g2d);
 		if (_off_hook) {
-			g.setColor(telephone.plug);
-			g.fillOval(0, 40, 60, 60);
-			g.setColor(telephone.plug_lt);
-			g.drawArc(5, 45, 50, 50, 90, 90);
-			g.drawOval(10, 50, 40, 40);
-			g.fillOval(20, 60, 20, 20);
+			g2d.setColor(telephone.plug);
+			g2d.fillOval(10, 45, 40, 40);
+			g2d.setColor(telephone.plug_lt);
+			g2d.drawArc(15, 50, 30, 30, 90, 90);
+			g2d.drawOval(20, 55, 20, 20);
+			g2d.fillOval(25, 60, 10, 10);
+			g2d.setColor(telephone.jack_face);
+			g2d.setStroke(new BasicStroke((float)5.0,
+				BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER));
+			g2d.fillOval(13, 0, 10, 10);
+			g2d.drawLine(17, 5, 50, 13);
+			g2d.setColor(telephone.jack_dk);
+			g2d.drawLine(36, 10, 45, 12);
 		} else {
-			g.setColor(telephone.plug);
-			g.fillRect(20, 0, 20, 100);
+			g2d.setColor(telephone.plug);
+			g2d.fillArc(18, 0, 24, 24, 45, 90);
+			g2d.fillRoundRect(19, 5, 22, 5, 3, 3);
+			g2d.fillRect(21, 10, 18, 61);
+			g2d.fillPolygon(rec_x, rec_y, 6);
+			g2d.fillRoundRect(10, 73, 39, 8, 4, 4);
+			g2d.setColor(telephone.plug_lt);
+			g2d.drawArc(20, 2, 20, 20, 95, 45);
+			g2d.drawLine(21, 6, 30, 6);
+			g2d.drawLine(23, 11, 23, 63);
+			g2d.drawLine(23, 64, 16, 71);
+			g2d.drawLine(12, 74, 30, 74);
+			g2d.setColor(telephone.jack_face);
+			g2d.setStroke(new BasicStroke((float)5.0,
+				BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER));
+			g2d.fillOval(10, 7, 10, 10);
+			g2d.drawLine(15, 13, 50, 13);
+			g2d.setColor(telephone.jack_dk);
+			g2d.drawLine(35, 13, 45, 13);
 		}
 	}
 
@@ -401,23 +441,39 @@ class StrombergCarlson_Rec extends JPanel
 	public void mouseReleased(MouseEvent e) { }
 }
 
-class StrombergCarlson_Shelf extends JPanel
+class StrombergCarlson_Shelf extends JLayeredPane
 {
 	static final long serialVersionUID = 311000000010L;
 	public static final int obj_width = 100;
 	public static final int obj_height = 50;
 
+	private static final int[] shelf_x = { 5, 95, 100, 0,  5 };
+	private static final int[] shelf_y = { 0,  0,  35, 35, 0 };
+
 	private boolean _off_hook;
 	private JEditorPane _text;
 	private JScrollPane _scroll;
+	private StrombergCarlson_Shelf_Overlay _shelf;
 
-	public void paint(Graphics g) {
-		super.paint(g);
-		if (_off_hook) {
-			return;
-		} else {
-			g.setColor(telephone.well_lt);
-			g.fillRect(0, 0, obj_width, obj_height);
+	private class StrombergCarlson_Shelf_Overlay extends JPanel
+	{
+		static final long serialVersionUID = 311000000012L;
+
+		public void paint(Graphics g) {
+			super.paint(g);
+			if (!_off_hook) {
+				g.setColor(telephone.cabinet);
+				g.fillRect(0, 0, obj_width, obj_height);
+				g.setColor(telephone.well_lt);
+				g.fillPolygon(shelf_x, shelf_y, 4);
+				g.setColor(telephone.well_dk);
+				g.fillRect(0, 35, 100, 5);
+				g.fillRect(5, 35, 90, 15);
+			}
+		}
+
+		public StrombergCarlson_Shelf_Overlay() {
+			setOpaque(false);
 		}
 	}
 
@@ -426,11 +482,22 @@ class StrombergCarlson_Shelf extends JPanel
 		_text = new JEditorPane();
 		_text.setEditable(false);
 		_text.setFont(telephone.font2);
+		_text.setBackground(telephone.well_lt);
+		//_text.setText("Chat Here");
 		_scroll = new JScrollPane(_text);
 		_scroll.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
 		_scroll.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
 		_scroll.setPreferredSize(new Dimension(obj_width, obj_height));
-		_scroll.setVisible(false);
+		_scroll.setFocusable(false);
+		_scroll.setVisible(true);
+		_scroll.setBounds(0, 0, obj_width, obj_height);
+
+		_shelf = new StrombergCarlson_Shelf_Overlay();
+		_shelf.setPreferredSize(new Dimension(obj_width, obj_height));
+		_shelf.setBounds(0, 0, obj_width, obj_height);
+
+		add(_scroll, new Integer(10));
+		add(_shelf, new Integer(20));
 		setOpaque(false);
 		setPreferredSize(new Dimension(obj_width, obj_height));
 	}
@@ -438,7 +505,11 @@ class StrombergCarlson_Shelf extends JPanel
 	public void goOffHook(boolean off_hook) {
 		if (_off_hook != off_hook) {
 			_off_hook = off_hook;
-			_scroll.setVisible(off_hook);
+			if (_off_hook) {
+				moveToFront(_scroll);
+			} else {
+				moveToBack(_scroll);
+			}
 			repaint();
 		}
 	}
@@ -464,15 +535,25 @@ class StrombergCarlson_Bell extends JPanel
 		Graphics2D g2d = (Graphics2D)g;
 		super.paint(g2d);
 		g2d.setColor(telephone.jack_face);
-		g2d.fillOval(0, 0, 40, 40);
+		g2d.fillOval(4, 0, 40, 40);
 		g2d.fillOval(45, 10, 10, 20);
-		g2d.fillOval(60, 0, 40, 40);
+		g2d.fillOval(56, 0, 40, 40);
+		g2d.setColor(telephone.jack_lt);
+		g2d.drawArc(14, 10, 20, 20, 112, 45);
+		g2d.drawArc(66, 10, 20, 20, 112, 45);
+		g2d.setColor(Color.white);
+		g2d.fillOval(16, 12, 16, 16);
+		g2d.fillOval(68, 12, 16, 16);
+		g2d.drawArc(47, 12, 6, 16, 90, 45);
+		g2d.setColor(telephone.jack_dk);
+		g2d.fillOval(21, 17, 6, 6);
+		g2d.fillOval(73, 17, 6, 6);
 		if (_ring) {
 			g2d.setColor(Color.red);
 			g2d.setStroke(new BasicStroke((float)5.0,
 				BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER));
-			g2d.drawOval(3, 3, 35, 35);
-			g2d.drawOval(63, 3, 35, 35);
+			g2d.drawOval(7, 3, 35, 35);
+			g2d.drawOval(59, 3, 35, 35);
 		}
 	}
 
@@ -508,9 +589,13 @@ class StrombergCarlson_Trans extends JPanel
 		g.setColor(telephone.jack_face);
 		g.fillOval(0, 0, 60, 60);
 		g.setColor(telephone.plug);
-		g.fillOval(10, 10, 40, 40);
+		g.fillOval(8, 8, 44, 44);
+		g.setColor(telephone.plug_sun);
+		g.fillArc(11, 11, 38, 38, 292, 45);
 		g.setColor(telephone.plug_lt);
-		g.fillOval(20, 20, 20, 20);
+		g.fillOval(23, 23, 14, 14);
+		g.drawArc(9, 9, 42, 42, 112, 45);
+		g.drawArc(9, 9, 42, 42, 292, 45);
 	}
 
 	public StrombergCarlson_Trans() {
