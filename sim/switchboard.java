@@ -1,5 +1,5 @@
 // Copyright (c) 2011,2012 Douglas Miller
-// $Id: switchboard.java,v 1.27 2012/02/11 16:24:21 drmiller Exp $
+// $Id: switchboard.java,v 1.28 2012/02/11 23:22:36 drmiller Exp $
 
 import java.awt.*;
 import javax.swing.*;
@@ -12,7 +12,7 @@ import java.io.*;
 
 public class switchboard
 {
-	final String ident = "$Id: switchboard.java,v 1.27 2012/02/11 16:24:21 drmiller Exp $";
+	final String ident = "$Id: switchboard.java,v 1.28 2012/02/11 23:22:36 drmiller Exp $";
 
 	static final Color cabinet = new Color(165, 125, 14);
 
@@ -104,7 +104,7 @@ public class switchboard
 }
 
 class Kellogg_Cabinet extends JLayeredPane
-		implements Runnable
+		implements Runnable, KeyListener
 {
 	static final long serialVersionUID = 311000000010L;
 
@@ -122,6 +122,10 @@ class Kellogg_Cabinet extends JLayeredPane
 
 	private int cab_width;
 	private ServerSocket _ss;
+
+	private String _txt;
+	private JTextArea _text;
+	private JScrollPane _scroll;
 
 	private class Kellogg_Cabinet_Overlay extends JPanel
 	{
@@ -188,6 +192,18 @@ class Kellogg_Cabinet extends JLayeredPane
 	public Kellogg_Cabinet(int num_lines, int num_circs,
 			Component top,
 			FontMetrics font_metrics) {
+		_txt = new String();
+		_text = new JTextArea();
+		_text.setEditable(false);
+		_text.setFont(telephone.font2);
+		_text.setBackground(telephone.well_lt);
+		_text.setFocusable(false);
+		_scroll = new JScrollPane(_text);
+		_scroll.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
+		_scroll.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+		_scroll.setFocusable(false);
+		_scroll.setVisible(true);
+
 		int n = lines_per_row;
 		if (num_lines < lines_per_row) n = num_lines;
 		cab_width = num_circs * Kellogg_Circuit.obj_width;
@@ -202,6 +218,10 @@ class Kellogg_Cabinet extends JLayeredPane
 
 		_lines = new Kellogg_Line[num_lines];
 		_nlines = num_lines;
+
+		_scroll.setPreferredSize(new Dimension(
+			cab_width - Kellogg_Magneto.obj_width,
+			Kellogg_Magneto.obj_height));
 
 		JPanel base = new JPanel();
 		GridBagLayout gridbag = new GridBagLayout();
@@ -244,7 +264,7 @@ class Kellogg_Cabinet extends JLayeredPane
 
 		s.gridx = 0;
 		s.gridy = 0;
-		s.gridwidth = 1;
+		s.gridwidth = 2;
 		s.gridheight = 1;
 		gridbag.setConstraints(upper, s);
 		base.add(upper);
@@ -257,19 +277,27 @@ class Kellogg_Cabinet extends JLayeredPane
 					Kellogg_Circuit.obj_height + 2 * border_size));
 		s.gridx = 0;
 		s.gridy = 1;
-		s.gridwidth = 1;
+		s.gridwidth = 2;
 		s.gridheight = 1;
 		gridbag.setConstraints(circs, s);
 		base.add(circs);
 
 		Kellogg_Magneto mag = new Kellogg_Magneto(this);
-		s.gridx = 0;
+		s.gridx = 1;
 		s.gridy = 2;
 		s.gridwidth = 1;
 		s.gridheight = 1;
 		s.anchor = GridBagConstraints.EAST;
 		gridbag.setConstraints(mag, s);
 		base.add(mag);
+
+		s.gridx = 0;
+		s.gridy = 2;
+		s.gridwidth = 1;
+		s.gridheight = 1;
+		s.anchor = GridBagConstraints.CENTER;
+		gridbag.setConstraints(_scroll, s);
+		base.add(_scroll);
 
 		Dimension dim = new Dimension(cab_width + 2 * border_size,
 					rows * Kellogg_LineWithDrop.obj_height +
@@ -290,6 +318,8 @@ class Kellogg_Cabinet extends JLayeredPane
 		setPreferredSize(dim);
 		setOpaque(false);
 		setForeground(Color.red);
+
+		top.addKeyListener(this);
 
 		try {
 			_ss = new ServerSocket(31100, 1, InetAddress.getLocalHost());
@@ -437,6 +467,18 @@ class Kellogg_Cabinet extends JLayeredPane
 		}
 	}
 
+	// called by a Kellogg_Line when subscriber "says" something...
+	public void post(Kellogg_Line line, String s) {
+		int i;
+		for (i = 0; i < _conn_plugs.length; ++i) {
+			if (_conn_lines[i] == line) {
+				if (_conn_plugs[i].isListening()) {
+					_text.append(line.getId() + ">> " + s);
+				}
+			}
+		}
+	}
+
 	public void selectPlug(Kellogg_Plug plug) {
 		if (_sel_plug != null) {
 			_sel_plug.setSelect(false);
@@ -458,6 +500,31 @@ class Kellogg_Cabinet extends JLayeredPane
 				_conn_lines[i].ring(on);
 			}
 		}
+	}
+
+	private void type(char c) {
+		String s = Character.toString(c);
+		_text.append(s);
+		_txt += s;
+		if (c != KeyEvent.VK_ENTER) return;
+		int i;
+		for (i = 0; i < _conn_plugs.length; ++i) {
+			if (_conn_lines[i] != null) {
+				if (_conn_plugs[i].isListening()) {
+					_conn_lines[i].speak(_txt);
+				}
+			}
+		}
+		_txt = new String();
+	}
+
+	public void keyTyped(KeyEvent e) {
+		char c = e.getKeyChar();
+		type(c);
+	}
+	public void keyPressed(KeyEvent e) {
+	}
+	public void keyReleased(KeyEvent e) {
 	}
 
 	public void run() {
@@ -577,7 +644,7 @@ class Kellogg_Magneto extends JPanel
 class Kellogg_Drop extends JPanel
 	implements MouseListener
 {
-	final String ident = "$Id: switchboard.java,v 1.27 2012/02/11 16:24:21 drmiller Exp $";
+	final String ident = "$Id: switchboard.java,v 1.28 2012/02/11 23:22:36 drmiller Exp $";
 	static final long serialVersionUID = 311000000003L;
 	public static final int obj_width = 60;
 	public static final int obj_height = 60;
@@ -686,7 +753,7 @@ class Kellogg_Drop extends JPanel
 class Kellogg_Line extends JPanel
 	implements MouseListener, Runnable
 {
-	final String ident = "$Id: switchboard.java,v 1.27 2012/02/11 16:24:21 drmiller Exp $";
+	final String ident = "$Id: switchboard.java,v 1.28 2012/02/11 23:22:36 drmiller Exp $";
 	static final long serialVersionUID = 311000000002L;
 	public static final int obj_width = 60;
 	public static final int obj_height = 40;
@@ -812,6 +879,15 @@ class Kellogg_Line extends JPanel
 		return true;
 	}
 
+	public int getId() { return _num; }
+
+	public void speak(String s) {
+		try {
+			_out.write(s.getBytes());
+		} catch(IOException e) {
+		}
+	}
+
 	public void run() {
 		int n;
 		while (true) {
@@ -821,11 +897,15 @@ class Kellogg_Line extends JPanel
 				n = -1;
 			}
 			if (n < 0) break;
-			// RING...
-			if (_conn_plug != null) {
-				_conn_plug.ring();
+			String s = new String(_buf, 0, n);
+			if (s.equals("%RING\n")) {
+				if (_conn_plug != null) {
+					_conn_plug.ring();
+				} else {
+					_drop.setDropped(true);
+				}
 			} else {
-				_drop.setDropped(true);
+				_cab.post(this, s);
 			}
 		}
 		try {
@@ -842,7 +922,7 @@ class Kellogg_Line extends JPanel
 
 class Kellogg_LineWithDrop extends JPanel
 {
-	final String ident = "$Id: switchboard.java,v 1.27 2012/02/11 16:24:21 drmiller Exp $";
+	final String ident = "$Id: switchboard.java,v 1.28 2012/02/11 23:22:36 drmiller Exp $";
 	static final long serialVersionUID = 311000000004L;
 	public static final int obj_width = 60;
 	public static final int obj_height =
@@ -904,7 +984,7 @@ class Kellogg_LineWithDrop extends JPanel
 class Kellogg_Plug extends JPanel
 	implements MouseListener
 {
-	final String ident = "$Id: switchboard.java,v 1.27 2012/02/11 16:24:21 drmiller Exp $";
+	final String ident = "$Id: switchboard.java,v 1.28 2012/02/11 23:22:36 drmiller Exp $";
 	static final long serialVersionUID = 311000000005L;
 	public static final int obj_width = 75;
 	public static final int obj_height = 40;
@@ -997,6 +1077,10 @@ class Kellogg_Plug extends JPanel
 		}
 	}
 
+	public boolean isListening() {
+		return (_circ.listenSw());
+	}
+
 	public boolean isRingable() {
 		return (_circ.ringSw() == _ring_state);
 	}
@@ -1009,7 +1093,7 @@ class Kellogg_Plug extends JPanel
 class Kellogg_RingSw extends JPanel
 	implements MouseListener, KeyListener
 {
-	final String ident = "$Id: switchboard.java,v 1.27 2012/02/11 16:24:21 drmiller Exp $";
+	final String ident = "$Id: switchboard.java,v 1.28 2012/02/11 23:22:36 drmiller Exp $";
 	static final long serialVersionUID = 311000000007L;
 	public static final int obj_width = 75;
 	public static final int obj_height = 66;
@@ -1119,7 +1203,7 @@ class Kellogg_RingSw extends JPanel
 class Kellogg_ListenSw extends JPanel
 	implements MouseListener
 {
-	final String ident = "$Id: switchboard.java,v 1.27 2012/02/11 16:24:21 drmiller Exp $";
+	final String ident = "$Id: switchboard.java,v 1.28 2012/02/11 23:22:36 drmiller Exp $";
 	static final long serialVersionUID = 311000000006L;
 	public static final int obj_width = 75;
 	public static final int obj_height = 64;
@@ -1170,6 +1254,8 @@ class Kellogg_ListenSw extends JPanel
 	public void mousePressed(MouseEvent e) { }
 	public void mouseReleased(MouseEvent e) { }
 
+	public boolean getState() { return _state; }
+
 	public void setState(boolean on) {
 		if (_state != on) {
 			_state = on;
@@ -1180,7 +1266,7 @@ class Kellogg_ListenSw extends JPanel
 
 class Kellogg_Circuit extends JPanel
 {
-	final String ident = "$Id: switchboard.java,v 1.27 2012/02/11 16:24:21 drmiller Exp $";
+	final String ident = "$Id: switchboard.java,v 1.28 2012/02/11 23:22:36 drmiller Exp $";
 	static final long serialVersionUID = 311000000008L;
 	public static final int plug_lab_height = 25;
 	public static final int obj_width = 75;
@@ -1313,6 +1399,10 @@ class Kellogg_Circuit extends JPanel
 
 	public int ringSw() {
 		return _ring.getState();
+	}
+
+	public boolean listenSw() {
+		return _listen.getState();
 	}
 
 	public int getId() {

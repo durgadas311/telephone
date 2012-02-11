@@ -1,5 +1,5 @@
 // Copyright (c) 2011,2012 Douglas Miller
-// $Id: telephone.java,v 1.2 2012/02/11 21:57:58 drmiller Exp $
+// $Id: telephone.java,v 1.3 2012/02/11 23:22:36 drmiller Exp $
 
 import java.awt.*;
 import javax.swing.*;
@@ -11,7 +11,7 @@ import java.io.*;
 
 public class telephone
 {
-	final String ident = "$Id: telephone.java,v 1.2 2012/02/11 21:57:58 drmiller Exp $";
+	final String ident = "$Id: telephone.java,v 1.3 2012/02/11 23:22:36 drmiller Exp $";
 
 	static final Color cabinet = new Color(165, 125, 14);
 
@@ -77,6 +77,7 @@ public class telephone
 						front_end, font_metrics);
 		front_end.add(cab);
 
+		front_end.addKeyListener(cab);
 		front_end.getContentPane().setBackground(Color.gray);
 		front_end.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 		front_end.setSize(1024,640);
@@ -86,7 +87,7 @@ public class telephone
 }
 
 class StrombergCarlson_Cabinet extends JPanel
-		implements Runnable
+		implements Runnable, KeyListener
 {
 	static final long serialVersionUID = 311000000010L;
 
@@ -240,6 +241,20 @@ class StrombergCarlson_Cabinet extends JPanel
 		t.start();
 	}
 
+	public void keyTyped(KeyEvent e) {
+		char c = e.getKeyChar();
+		_shelf.type(c);
+		if (c == KeyEvent.VK_ENTER) {
+			try {
+				_out.write(_shelf.typed().getBytes());
+			} catch (IOException ee) {
+			}
+		}
+	}
+
+	public void keyPressed(KeyEvent e) { }
+	public void keyReleased(KeyEvent e) { }
+
 	public void ring(boolean on) {
 		if (!on) return;
 		try {
@@ -262,7 +277,6 @@ class StrombergCarlson_Cabinet extends JPanel
 			if (s.equals("%RING\n")) {
 				_bell.ring();
 			} else {
-System.err.println("Got: \""+s+"\"");
 				_shelf.post(s);
 			}
 		}
@@ -451,7 +465,8 @@ class StrombergCarlson_Shelf extends JLayeredPane
 	private static final int[] shelf_y = { 0,  0,  35, 35, 0 };
 
 	private boolean _off_hook;
-	private JEditorPane _text;
+	private String _txt;
+	private JTextArea _text;
 	private JScrollPane _scroll;
 	private StrombergCarlson_Shelf_Overlay _shelf;
 
@@ -479,8 +494,10 @@ class StrombergCarlson_Shelf extends JLayeredPane
 
 	public StrombergCarlson_Shelf() {
 		_off_hook = false;
-		_text = new JEditorPane();
+		_txt = new String();
+		_text = new JTextArea();
 		_text.setEditable(false);
+		_text.setFocusable(false);
 		_text.setFont(telephone.font2);
 		_text.setBackground(telephone.well_lt);
 		//_text.setText("Chat Here");
@@ -515,9 +532,22 @@ class StrombergCarlson_Shelf extends JLayeredPane
 	}
 
 	public void post(String s) {
-		if (_off_hook) {
-			_text.setText(s);
-		}
+		if (!_off_hook) return;
+		_text.append(">> " + s);
+	}
+
+	public void type(char c) {
+		if (!_off_hook) return;
+		String s = Character.toString(c);
+		_text.append(s);
+		_txt += s;
+	}
+
+	public String typed() {
+		if (!_off_hook) return null;
+		String s = _txt;
+		_txt = new String();
+		return s;
 	}
 }
 
