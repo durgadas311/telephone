@@ -1,11 +1,16 @@
-# $Id: Makefile,v 1.3 2012/02/10 22:53:21 drmiller Exp $
+# $Id: Makefile,v 1.4 2012/02/11 16:24:21 drmiller Exp $
+
+all: switchboard.class telephone.class
 
 switchboard.class: switchboard.java
 	javac switchboard.java
 
-jar: switchboard.jar
+telephone.class: telephone.java
+	javac telephone.java
 
-switchboard.jar: switchboard.class Manifest.txt
+jar: switchboard.jar 
+
+switchboard.jar: switchboard.class telephone.class Manifest.txt
 	jar cfm $@ Manifest.txt *.class
 
 Manifest.txt:
