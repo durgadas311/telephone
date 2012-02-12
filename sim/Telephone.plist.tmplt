@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist SYSTEM "file://localhost/System/Library/DTDs/PropertyList.dtd">
+<plist version="0.9">
+<dict>
+	<key>CFBundleDocumentTypes</key>
+	<array>
+	</array>
+	<key>CFBundleExecutable</key>
+	<string>run</string>
+	<key>CFBundleGetInfoString</key>
+	<string>Stromberg-Carlson Magneto Telephone Simulator</string>
+	<key>CFBundleIconFile</key>
+	<string>telephone-48x48.icns</string>
+	<key>CFBundleIdentifier</key>
+	<string>com.durgadas.www</string>
+	<key>CFBundleName</key>
+	<string>Telephone</string>
+	<key>CFBundlePackageType</key>
+	<string>APPL</string>
+	<key>CFBundleShortVersionString</key>
+	<string>1</string>
+	<key>CFBundleSignature</key>
+	<string>SCMT</string>
+	<key>CFBundleVersion</key>
+	<string>1</string>
+</dict>
+</plist>

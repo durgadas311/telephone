@@ -1,0 +1,9 @@
+[Desktop Entry]
+Encoding=UTF-8
+GenericName=Kellogg Magneto Switchboard Simulator
+Name=Switchboard
+Exec=${INSTALLPATH}/run-switchboard
+Icon=${INSTALLPATH}/icons/switchboard-48x48.png
+Terminal=true
+Type=Application
+Categories=Qt;Gnome;Applications;

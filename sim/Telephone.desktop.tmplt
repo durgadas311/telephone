@@ -1,0 +1,9 @@
+[Desktop Entry]
+Encoding=UTF-8
+GenericName=Stromberg-Carlson Magneto Telephone Simulator
+Name=Telephone
+Exec=${INSTALLPATH}/run
+Icon=${INSTALLPATH}/icons/telephone-48x48.png
+Terminal=true
+Type=Application
+Categories=Qt;Gnome;Applications;

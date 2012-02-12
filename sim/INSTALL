@@ -1,0 +1,22 @@
+#!/bin/sh
+# $Id: INSTALL,v 1.1 2012/02/12 21:15:26 drmiller Exp $
+
+export INSTALLPATH=${PWD}
+for title in Switchboard Telephone; do
+	if [[ ( -d ~/.gnome || -d ~/.gnome2 ) && -d ~/Desktop ]]; then
+		echo "installing GNOME desktop ${title} shortcut..."
+		cat ${title}.desktop.tmplt | while read line; do
+			eval "echo \"${line}\""
+		done >~/Desktop/${title}.desktop
+	elif [[ -f ~/.CFUserTextEncoding && -d ~/Desktop ]]; then
+		echo "installing OSX desktop ${title} shortcuts..."
+		rm -rf ~/Desktop/${title}.app
+		mkdir -p ~/Desktop/${title}.app/Contents/{Resources,MacOS}
+		cat ${title}.plist.tmplt | while read line; do
+			eval "echo \"${line}\""
+		done >~/Desktop/${title}.app/Contents/Info.plist
+		ln -s ${PWD}/run ~/Desktop/${title}.app/Contents/MacOS/
+		cp icons/${title}-*x*.icns ~/Desktop/${title}.app/Contents/Resources/
+	fi
+done
+echo "Ready to launch ${PWD}/run-switchboard and ${PWD}/run-telephone"
