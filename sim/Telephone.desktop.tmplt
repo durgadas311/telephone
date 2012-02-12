@@ -2,7 +2,7 @@
 Encoding=UTF-8
 GenericName=Stromberg-Carlson Magneto Telephone Simulator
 Name=Telephone
-Exec=${INSTALLPATH}/run-telephone
+Exec=${INSTALLPATH}/run-Telephone
 Icon=${INSTALLPATH}/icons/telephone-48x48.png
 Terminal=false
 Type=Application

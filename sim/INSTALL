@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Id: INSTALL,v 1.1 2012/02/12 21:15:26 drmiller Exp $
+# $Id: INSTALL,v 1.2 2012/02/12 21:34:13 drmiller Exp $
 
 export INSTALLPATH=${PWD}
 for title in Switchboard Telephone; do
@@ -15,8 +15,8 @@ for title in Switchboard Telephone; do
 		cat ${title}.plist.tmplt | while read line; do
 			eval "echo \"${line}\""
 		done >~/Desktop/${title}.app/Contents/Info.plist
-		ln -s ${PWD}/run ~/Desktop/${title}.app/Contents/MacOS/
+		ln -s ${PWD}/run-${title} ~/Desktop/${title}.app/Contents/MacOS/
 		cp icons/${title}-*x*.icns ~/Desktop/${title}.app/Contents/Resources/
 	fi
 done
-echo "Ready to launch ${PWD}/run-switchboard and ${PWD}/run-telephone"
+echo "Ready to launch ${PWD}/run-Switchboard and ${PWD}/run-Telephone"

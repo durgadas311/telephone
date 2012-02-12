@@ -2,7 +2,7 @@
 Encoding=UTF-8
 GenericName=Kellogg Magneto Switchboard Simulator
 Name=Switchboard
-Exec=${INSTALLPATH}/run-switchboard
+Exec=${INSTALLPATH}/run-Switchboard
 Icon=${INSTALLPATH}/icons/switchboard-48x48.png
 Terminal=false
 Type=Application
