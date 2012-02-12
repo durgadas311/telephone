@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Id: run-Switchboard,v 1.1 2012/02/12 21:34:13 drmiller Exp $
+# $Id: run-Switchboard,v 1.2 2012/02/12 22:43:52 drmiller Exp $
 
 cd ~/tele-sb-sim
 exec java -jar switchboard.jar
