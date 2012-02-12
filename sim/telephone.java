@@ -1,5 +1,5 @@
 // Copyright (c) 2011,2012 Douglas Miller
-// $Id: telephone.java,v 1.7 2012/02/12 20:16:27 drmiller Exp $
+// $Id: telephone.java,v 1.8 2012/02/12 20:46:01 drmiller Exp $
 
 import java.awt.*;
 import javax.swing.*;
@@ -8,10 +8,11 @@ import javax.swing.Timer;
 import javax.swing.border.*;
 import java.net.*;
 import java.io.*;
+import javax.swing.text.Caret;
 
 public class telephone
 {
-	final String ident = "$Id: telephone.java,v 1.7 2012/02/12 20:16:27 drmiller Exp $";
+	final String ident = "$Id: telephone.java,v 1.8 2012/02/12 20:46:01 drmiller Exp $";
 
 	static final Color cabinet = new Color(165, 125, 14);
 	static final Color cabinet_lt = new Color(185, 145, 34);
@@ -300,9 +301,11 @@ class StrombergCarlson_Cabinet extends JPanel
 		_text.setBackground(Color.white);
 		_text.setLineWrap(true);
 		_text.setWrapStyleWord(true);
+		Caret caret = new javax.swing.plaf.basic.BasicTextUI.BasicCaret();
+		caret.setBlinkRate(500);
+		_text.setCaret(caret);
 		_text.getCaret().setVisible(true);
 		_text.setCaretColor(telephone.cabinet);
-		//_text.setText("Chat Here");
 		_scroll = new JScrollPane(_text);
 		_scroll.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
 		_scroll.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);

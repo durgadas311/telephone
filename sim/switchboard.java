@@ -1,5 +1,5 @@
 // Copyright (c) 2011,2012 Douglas Miller
-// $Id: switchboard.java,v 1.32 2012/02/12 20:16:27 drmiller Exp $
+// $Id: switchboard.java,v 1.33 2012/02/12 20:46:01 drmiller Exp $
 
 import java.awt.*;
 import javax.swing.*;
@@ -9,10 +9,11 @@ import javax.swing.Timer;
 import javax.swing.border.*;
 import java.net.*;
 import java.io.*;
+import javax.swing.text.Caret;
 
 public class switchboard
 {
-	final String ident = "$Id: switchboard.java,v 1.32 2012/02/12 20:16:27 drmiller Exp $";
+	final String ident = "$Id: switchboard.java,v 1.33 2012/02/12 20:46:01 drmiller Exp $";
 
 	static final Color cabinet = new Color(165, 125, 14);
 
@@ -206,6 +207,9 @@ class Kellogg_Cabinet extends JLayeredPane
 		_text.setBackground(Color.white);
 		_text.setLineWrap(true);
 		_text.setWrapStyleWord(true);
+		Caret caret = new javax.swing.plaf.basic.BasicTextUI.BasicCaret();
+		caret.setBlinkRate(500);
+		_text.setCaret(caret);
 		_text.getCaret().setVisible(true);
 		_text.setCaretColor(switchboard.cabinet);
 		_scroll = new JScrollPane(_text);
@@ -702,7 +706,7 @@ class Kellogg_Magneto extends JPanel
 class Kellogg_Drop extends JPanel
 	implements MouseListener
 {
-	final String ident = "$Id: switchboard.java,v 1.32 2012/02/12 20:16:27 drmiller Exp $";
+	final String ident = "$Id: switchboard.java,v 1.33 2012/02/12 20:46:01 drmiller Exp $";
 	static final long serialVersionUID = 311000000003L;
 	public static final int obj_width = 60;
 	public static final int obj_height = 60;
@@ -811,7 +815,7 @@ class Kellogg_Drop extends JPanel
 class Kellogg_Line extends JPanel
 	implements MouseListener, Runnable
 {
-	final String ident = "$Id: switchboard.java,v 1.32 2012/02/12 20:16:27 drmiller Exp $";
+	final String ident = "$Id: switchboard.java,v 1.33 2012/02/12 20:46:01 drmiller Exp $";
 	static final long serialVersionUID = 311000000002L;
 	public static final int obj_width = 60;
 	public static final int obj_height = 40;
@@ -982,7 +986,7 @@ class Kellogg_Line extends JPanel
 
 class Kellogg_LineWithDrop extends JPanel
 {
-	final String ident = "$Id: switchboard.java,v 1.32 2012/02/12 20:16:27 drmiller Exp $";
+	final String ident = "$Id: switchboard.java,v 1.33 2012/02/12 20:46:01 drmiller Exp $";
 	static final long serialVersionUID = 311000000004L;
 	public static final int obj_width = 60;
 	public static final int obj_height =
@@ -1044,7 +1048,7 @@ class Kellogg_LineWithDrop extends JPanel
 class Kellogg_Plug extends JPanel
 	implements MouseListener
 {
-	final String ident = "$Id: switchboard.java,v 1.32 2012/02/12 20:16:27 drmiller Exp $";
+	final String ident = "$Id: switchboard.java,v 1.33 2012/02/12 20:46:01 drmiller Exp $";
 	static final long serialVersionUID = 311000000005L;
 	public static final int obj_width = 75;
 	public static final int obj_height = 40;
@@ -1161,7 +1165,7 @@ class Kellogg_Plug extends JPanel
 class Kellogg_RingSw extends JPanel
 	implements MouseListener, KeyListener
 {
-	final String ident = "$Id: switchboard.java,v 1.32 2012/02/12 20:16:27 drmiller Exp $";
+	final String ident = "$Id: switchboard.java,v 1.33 2012/02/12 20:46:01 drmiller Exp $";
 	static final long serialVersionUID = 311000000007L;
 	public static final int obj_width = 75;
 	public static final int obj_height = 66;
@@ -1271,7 +1275,7 @@ class Kellogg_RingSw extends JPanel
 class Kellogg_ListenSw extends JPanel
 	implements MouseListener
 {
-	final String ident = "$Id: switchboard.java,v 1.32 2012/02/12 20:16:27 drmiller Exp $";
+	final String ident = "$Id: switchboard.java,v 1.33 2012/02/12 20:46:01 drmiller Exp $";
 	static final long serialVersionUID = 311000000006L;
 	public static final int obj_width = 75;
 	public static final int obj_height = 64;
@@ -1337,7 +1341,7 @@ class Kellogg_ListenSw extends JPanel
 
 class Kellogg_Circuit extends JPanel
 {
-	final String ident = "$Id: switchboard.java,v 1.32 2012/02/12 20:16:27 drmiller Exp $";
+	final String ident = "$Id: switchboard.java,v 1.33 2012/02/12 20:46:01 drmiller Exp $";
 	static final long serialVersionUID = 311000000008L;
 	public static final int plug_lab_height = 25;
 	public static final int obj_width = 75;
