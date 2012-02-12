@@ -1,5 +1,5 @@
 // Copyright (c) 2011,2012 Douglas Miller
-// $Id: telephone.java,v 1.6 2012/02/12 16:49:22 drmiller Exp $
+// $Id: telephone.java,v 1.7 2012/02/12 20:16:27 drmiller Exp $
 
 import java.awt.*;
 import javax.swing.*;
@@ -11,7 +11,7 @@ import java.io.*;
 
 public class telephone
 {
-	final String ident = "$Id: telephone.java,v 1.6 2012/02/12 16:49:22 drmiller Exp $";
+	final String ident = "$Id: telephone.java,v 1.7 2012/02/12 20:16:27 drmiller Exp $";
 
 	static final Color cabinet = new Color(165, 125, 14);
 	static final Color cabinet_lt = new Color(185, 145, 34);
@@ -64,12 +64,16 @@ public class telephone
 		//front_end.setIconImage(img);
 		FontMetrics font_metrics = front_end.getFontMetrics(font);
 
-		String host = "localhost";
+		String host = null;
 		String port = "31100";
 		Socket sock = null;
 
 		try {
-			sock = new Socket(host, Integer.parseInt(port));
+			if (host == null) {
+				sock = new Socket(InetAddress.getLocalHost(), Integer.parseInt(port));
+			} else {
+				sock = new Socket(host, Integer.parseInt(port));
+			}
 		} catch (IOException ee) {
 			System.err.println("Unable to open socket to telephone!");
 			System.exit(1);
