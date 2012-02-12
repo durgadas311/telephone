@@ -6,7 +6,7 @@
 	<array>
 	</array>
 	<key>CFBundleExecutable</key>
-	<string>run</string>
+	<string>run-switchboard</string>
 	<key>CFBundleGetInfoString</key>
 	<string>Kellogg Magneto Switchboard Simulator</string>
 	<key>CFBundleIconFile</key>

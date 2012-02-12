@@ -6,7 +6,7 @@
 	<array>
 	</array>
 	<key>CFBundleExecutable</key>
-	<string>run</string>
+	<string>run-telephone</string>
 	<key>CFBundleGetInfoString</key>
 	<string>Stromberg-Carlson Magneto Telephone Simulator</string>
 	<key>CFBundleIconFile</key>
