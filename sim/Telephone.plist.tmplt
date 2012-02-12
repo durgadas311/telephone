@@ -10,7 +10,7 @@
 	<key>CFBundleGetInfoString</key>
 	<string>Stromberg-Carlson Magneto Telephone Simulator</string>
 	<key>CFBundleIconFile</key>
-	<string>telephone-48x48.icns</string>
+	<string>Telephone-48x48.icns</string>
 	<key>CFBundleIdentifier</key>
 	<string>com.durgadas.www</string>
 	<key>CFBundleName</key>

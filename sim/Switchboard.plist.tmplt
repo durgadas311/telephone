@@ -10,7 +10,7 @@
 	<key>CFBundleGetInfoString</key>
 	<string>Kellogg Magneto Switchboard Simulator</string>
 	<key>CFBundleIconFile</key>
-	<string>switchboard-48x48.icns</string>
+	<string>Switchboard-48x48.icns</string>
 	<key>CFBundleIdentifier</key>
 	<string>com.durgadas.www</string>
 	<key>CFBundleName</key>
