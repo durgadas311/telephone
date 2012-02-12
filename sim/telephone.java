@@ -1,5 +1,5 @@
 // Copyright (c) 2011,2012 Douglas Miller
-// $Id: telephone.java,v 1.5 2012/02/12 16:06:26 drmiller Exp $
+// $Id: telephone.java,v 1.6 2012/02/12 16:49:22 drmiller Exp $
 
 import java.awt.*;
 import javax.swing.*;
@@ -11,7 +11,7 @@ import java.io.*;
 
 public class telephone
 {
-	final String ident = "$Id: telephone.java,v 1.5 2012/02/12 16:06:26 drmiller Exp $";
+	final String ident = "$Id: telephone.java,v 1.6 2012/02/12 16:49:22 drmiller Exp $";
 
 	static final Color cabinet = new Color(165, 125, 14);
 	static final Color cabinet_lt = new Color(185, 145, 34);
@@ -353,6 +353,7 @@ class StrombergCarlson_Cabinet extends JPanel
 			if (_off_hook) {
 				if (dim.height < _off_hook_h) dim.height = _off_hook_h;
 			} else {
+				_text.setText("");
 				if (dim.height == _off_hook_h) dim.height = _on_hook_h;
 			}
 			_top.setSize(dim);
@@ -394,6 +395,12 @@ class StrombergCarlson_Cabinet extends JPanel
 
 	public void type(char c) {
 		if (!_off_hook) return;
+		if (c == KeyEvent.VK_BACK_SPACE) {
+			int p = _text.getCaretPosition();
+			_text.replaceRange("", p - 1, p);
+			_txt = _txt.substring(0, _txt.length() - 1);
+			return;
+		}
 		String s = Character.toString(c);
 		_text.append(s);
 		_txt += s;
