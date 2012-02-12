@@ -1,5 +1,5 @@
 // Copyright (c) 2011,2012 Douglas Miller
-// $Id: telephone.java,v 1.4 2012/02/12 02:21:04 drmiller Exp $
+// $Id: telephone.java,v 1.5 2012/02/12 16:06:26 drmiller Exp $
 
 import java.awt.*;
 import javax.swing.*;
@@ -11,9 +11,11 @@ import java.io.*;
 
 public class telephone
 {
-	final String ident = "$Id: telephone.java,v 1.4 2012/02/12 02:21:04 drmiller Exp $";
+	final String ident = "$Id: telephone.java,v 1.5 2012/02/12 16:06:26 drmiller Exp $";
 
 	static final Color cabinet = new Color(165, 125, 14);
+	static final Color cabinet_lt = new Color(185, 145, 34);
+	static final Color cabinet_dk = new Color(155, 115, 4);
 
 	static final Color drop = new Color(100, 100, 100);
 	static final Color drop_lt = new Color(130, 130, 130);
@@ -94,9 +96,12 @@ class StrombergCarlson_Cabinet extends JPanel
 	public static final int border_size = 2;
 	public static final int text_height = 100;
 
+	public static FontMetrics font_metrics;
+
 	private StrombergCarlson_Rec _rec;
 	private StrombergCarlson_Bell _bell;
 	private StrombergCarlson_Shelf _shelf;
+	private StrombergCarlson_NamePlate _plate;
 	private Component _top;
 
 	private Socket _s;
@@ -113,8 +118,8 @@ class StrombergCarlson_Cabinet extends JPanel
 
 	public StrombergCarlson_Cabinet(Socket so,
 			Component top,
-			FontMetrics font_metrics) {
-
+			FontMetrics fm) {
+		font_metrics = fm;
 		_top = top;
 		_s = so;
 		try {
@@ -123,7 +128,6 @@ class StrombergCarlson_Cabinet extends JPanel
 		} catch (IOException ee) {
 		}
 		if (top == null) return; // damn warnings
-		if (font_metrics == null) return; // damn warnings
 
 		GridBagLayout gridbag = new GridBagLayout();
 		setLayout(gridbag);
@@ -146,28 +150,44 @@ class StrombergCarlson_Cabinet extends JPanel
 		upper.setBorder(BorderFactory.createBevelBorder(BevelBorder.RAISED,
 					telephone.well_lt, telephone.well_dk));
 		Dimension dim;
-		dim = new Dimension(StrombergCarlson_Shelf.obj_width +
+		dim = new Dimension(140 +
 				2 * border_size,
-				StrombergCarlson_Bell.obj_height +
-				StrombergCarlson_Trans.obj_height +
-				StrombergCarlson_Shelf.obj_height +
-				20 + 20 + 2 *border_size);
+				315);
+//				StrombergCarlson_Shelf.obj_width +
+//				2 * border_size,
+//				StrombergCarlson_Bell.obj_height +
+//				StrombergCarlson_Trans.obj_height +
+//				StrombergCarlson_Shelf.obj_height +
+//				10 + 30 + 40 + 10 + 2 *border_size);
 		upper.setPreferredSize(dim);
+		int row = 0;
+		int cab_gh = 3;
+
+		JPanel pan = new JPanel();
+		pan.setOpaque(false);
+		pan.setPreferredSize(new Dimension(20, 5));
+		s.gridx = 0;
+		s.gridy = row++;
+		s.gridwidth = 1;
+		s.gridheight = 1;
+		s.anchor = GridBagConstraints.CENTER;
+		ugb.setConstraints(pan, s);
+		upper.add(pan);
 
 		_bell = new StrombergCarlson_Bell();
 		s.gridx = 0;
-		s.gridy = 0;
+		s.gridy = row++;
 		s.gridwidth = 1;
 		s.gridheight = 1;
 		s.anchor = GridBagConstraints.NORTH;
 		ugb.setConstraints(_bell, s);
 		upper.add(_bell);
 
-		JPanel pan = new JPanel();
+		pan = new JPanel();
 		pan.setOpaque(false);
-		pan.setPreferredSize(new Dimension(20, 20));
+		pan.setPreferredSize(new Dimension(20, 40));
 		s.gridx = 0;
-		s.gridy = 1;
+		s.gridy = row++;
 		s.gridwidth = 1;
 		s.gridheight = 1;
 		s.anchor = GridBagConstraints.CENTER;
@@ -176,27 +196,25 @@ class StrombergCarlson_Cabinet extends JPanel
 
 		StrombergCarlson_Trans tran = new StrombergCarlson_Trans();
 		s.gridx = 0;
-		s.gridy = 2;
+		s.gridy = row++;
 		s.gridwidth = 1;
 		s.gridheight = 1;
 		s.anchor = GridBagConstraints.CENTER;
 		ugb.setConstraints(tran, s);
 		upper.add(tran);
 
-		pan = new JPanel();
-		pan.setOpaque(false);
-		pan.setPreferredSize(new Dimension(20, 20));
+		_plate = new StrombergCarlson_NamePlate();
 		s.gridx = 0;
-		s.gridy = 3;
+		s.gridy = row++;
 		s.gridwidth = 1;
 		s.gridheight = 1;
 		s.anchor = GridBagConstraints.CENTER;
-		ugb.setConstraints(pan, s);
-		upper.add(pan);
+		ugb.setConstraints(_plate, s);
+		upper.add(_plate);
 
 		_shelf = new StrombergCarlson_Shelf();
 		s.gridx = 0;
-		s.gridy = 4;
+		s.gridy = row++;
 		s.gridwidth = 1;
 		s.gridheight = 1;
 		s.anchor = GridBagConstraints.SOUTH;
@@ -206,7 +224,7 @@ class StrombergCarlson_Cabinet extends JPanel
 		s.gridx = 1;
 		s.gridy = 0;
 		s.gridwidth = 1;
-		s.gridheight = 2;
+		s.gridheight = cab_gh;
 		s.anchor = GridBagConstraints.CENTER;
 		gridbag.setConstraints(upper, s);
 		add(upper);
@@ -226,17 +244,39 @@ class StrombergCarlson_Cabinet extends JPanel
 		s.gridx = 0;
 		s.gridy = 1;
 		s.gridwidth = 1;
-		s.gridheight = 1;
+		s.gridheight = 2;
 		s.anchor = GridBagConstraints.NORTH;
 		gridbag.setConstraints(_rec, s);
 		add(_rec);
 
-		StrombergCarlson_Magneto mag = new StrombergCarlson_Magneto(this);
+		pan = new JPanel();
+		pan.setOpaque(false);
+		pan.setPreferredSize(new Dimension(20, 20));
 		s.gridx = 2;
 		s.gridy = 0;
 		s.gridwidth = 1;
-		s.gridheight = 2;
+		s.gridheight = 1;
 		s.anchor = GridBagConstraints.CENTER;
+		gridbag.setConstraints(pan, s);
+		add(pan);
+
+		pan = new JPanel();
+		pan.setOpaque(false);
+		pan.setPreferredSize(new Dimension(20, 30));
+		s.gridx = 2;
+		s.gridy = 1;
+		s.gridwidth = 1;
+		s.gridheight = 1;
+		s.anchor = GridBagConstraints.CENTER;
+		gridbag.setConstraints(pan, s);
+		add(pan);
+
+		StrombergCarlson_Magneto mag = new StrombergCarlson_Magneto(this);
+		s.gridx = 2;
+		s.gridy = 2;
+		s.gridwidth = 1;
+		s.gridheight = 1;
+		s.anchor = GridBagConstraints.NORTH;
 		gridbag.setConstraints(mag, s);
 		add(mag);
 
@@ -266,7 +306,7 @@ class StrombergCarlson_Cabinet extends JPanel
 		_scroll.setFocusable(false);
 		_scroll.setVisible(false);
 		s.gridx = 0;
-		s.gridy = 2;
+		s.gridy = 3;
 		s.gridwidth = 3;
 		s.gridheight = 1;
 		s.anchor = GridBagConstraints.CENTER;
@@ -333,6 +373,8 @@ class StrombergCarlson_Cabinet extends JPanel
 			String s = new String(_buf, 0, n);
 			if (s.equals("%RING\n")) {
 				_bell.ring();
+			} else if (s.startsWith("%NAME=")) {
+				_plate.setName(s.substring(6));
 			} else {
 				post(s);
 			}
@@ -535,11 +577,11 @@ class StrombergCarlson_Rec extends JPanel
 class StrombergCarlson_Shelf extends JPanel
 {
 	static final long serialVersionUID = 311000000010L;
-	public static final int obj_width = 100;
-	public static final int obj_height = 50;
+	public static final int obj_width = 130;
+	public static final int obj_height = 100;
 
-	private static final int[] shelf_x = { 5, 95, 100, 0,  5 };
-	private static final int[] shelf_y = { 0,  0,  35, 35, 0 };
+	private static final int[] shelf_x = { 5, 125, 130,  0, 5 };
+	private static final int[] shelf_y = { 0,   0,  35, 35, 0 };
 
 	public void paint(Graphics g) {
 		super.paint(g);
@@ -548,8 +590,12 @@ class StrombergCarlson_Shelf extends JPanel
 		g.setColor(telephone.well_lt);
 		g.fillPolygon(shelf_x, shelf_y, 4);
 		g.setColor(telephone.well_dk);
-		g.fillRect(0, 35, 100, 5);
-		g.fillRect(5, 35, 90, 15);
+		g.fillRect(60, 35, 10, 35);
+		g.setColor(telephone.cabinet_dk);
+		g.fillRoundRect(0, 35, 130, 10, 4, 4);
+		g.drawLine(shelf_x[1], shelf_y[1], shelf_x[2] - 1, shelf_y[2]);
+		g.setColor(telephone.cabinet_lt);
+		g.drawLine(shelf_x[3], shelf_y[3], shelf_x[4], shelf_y[4]);
 	}
 
 	public StrombergCarlson_Shelf() {
@@ -638,5 +684,47 @@ class StrombergCarlson_Trans extends JPanel
 	public StrombergCarlson_Trans() {
 		setOpaque(false);
 		setPreferredSize(new Dimension(obj_width, obj_height));
+	}
+}
+
+class StrombergCarlson_NamePlate extends JPanel
+{
+	static final long serialVersionUID = 311000000010L;
+	public static final int obj_width = 100;
+	public static final int obj_height = 65;
+
+	private static final int[] plate_x = { 20, 80, 80, 20, 20 };
+	private static final int[] plate_y = { 20, 20, 40, 40, 20 };
+
+	private String _tag;
+	private int _tag_x;
+	private int _tag_y;
+
+	public void paint(Graphics g) {
+		super.paint(g);
+		if (_tag != null) {
+			g.setColor(telephone.well_lt);
+			g.drawLine(plate_x[0], plate_y[0], plate_x[1], plate_y[1]);
+			g.drawLine(plate_x[3], plate_y[3], plate_x[4], plate_y[4]);
+			g.setColor(telephone.well_dk);
+			g.drawLine(plate_x[1], plate_y[1], plate_x[2], plate_y[2]);
+			g.drawLine(plate_x[2], plate_y[2], plate_x[3], plate_y[3]);
+			g.drawString(_tag, _tag_x, _tag_y);
+		}
+	}
+
+	public StrombergCarlson_NamePlate() {
+		_tag = null;
+		setOpaque(false);
+		setPreferredSize(new Dimension(obj_width, obj_height));
+		setFont(telephone.font);
+	}
+
+	public void setName(String s) {
+		_tag = s.replaceAll("\n", "");
+		int w = StrombergCarlson_Cabinet.font_metrics.stringWidth(_tag);
+		_tag_x = (obj_width - w) / 2;
+		_tag_y = plate_y[2] - StrombergCarlson_Cabinet.font_metrics.getDescent();
+		repaint();
 	}
 }
