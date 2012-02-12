@@ -1,5 +1,5 @@
 // Copyright (c) 2011,2012 Douglas Miller
-// $Id: telephone.java,v 1.3 2012/02/11 23:22:36 drmiller Exp $
+// $Id: telephone.java,v 1.4 2012/02/12 02:21:04 drmiller Exp $
 
 import java.awt.*;
 import javax.swing.*;
@@ -11,7 +11,7 @@ import java.io.*;
 
 public class telephone
 {
-	final String ident = "$Id: telephone.java,v 1.3 2012/02/11 23:22:36 drmiller Exp $";
+	final String ident = "$Id: telephone.java,v 1.4 2012/02/12 02:21:04 drmiller Exp $";
 
 	static final Color cabinet = new Color(165, 125, 14);
 
@@ -92,20 +92,30 @@ class StrombergCarlson_Cabinet extends JPanel
 	static final long serialVersionUID = 311000000010L;
 
 	public static final int border_size = 2;
+	public static final int text_height = 100;
 
 	private StrombergCarlson_Rec _rec;
 	private StrombergCarlson_Bell _bell;
 	private StrombergCarlson_Shelf _shelf;
+	private Component _top;
 
 	private Socket _s;
 	private InputStream _in;
 	private OutputStream _out;
 	private byte[] _buf;
 
+	private boolean _off_hook;
+	private String _txt;
+	private JTextArea _text;
+	private JScrollPane _scroll;
+	private int _off_hook_h;
+	private int _on_hook_h;
+
 	public StrombergCarlson_Cabinet(Socket so,
 			Component top,
 			FontMetrics font_metrics) {
 
+		_top = top;
 		_s = so;
 		try {
 			_in = so.getInputStream();
@@ -212,7 +222,7 @@ class StrombergCarlson_Cabinet extends JPanel
 		gridbag.setConstraints(pan, s);
 		add(pan);
 
-		_rec = new StrombergCarlson_Rec(_shelf);
+		_rec = new StrombergCarlson_Rec(this);
 		s.gridx = 0;
 		s.gridy = 1;
 		s.gridwidth = 1;
@@ -234,6 +244,34 @@ class StrombergCarlson_Cabinet extends JPanel
 		dim2.width += StrombergCarlson_Rec.obj_width +
 				StrombergCarlson_Magneto.obj_width;
 		setPreferredSize(dim2);
+		_on_hook_h = 0;
+		_off_hook_h = 0;
+
+		_off_hook = false;
+		_txt = new String();
+		_text = new JTextArea();
+		_text.setEditable(false);
+		_text.setFocusable(false);
+		_text.setFont(telephone.font2);
+		_text.setBackground(Color.white);
+		_text.setLineWrap(true);
+		_text.setWrapStyleWord(true);
+		_text.getCaret().setVisible(true);
+		_text.setCaretColor(telephone.cabinet);
+		//_text.setText("Chat Here");
+		_scroll = new JScrollPane(_text);
+		_scroll.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
+		_scroll.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+		_scroll.setPreferredSize(new Dimension(dim2.width, text_height));
+		_scroll.setFocusable(false);
+		_scroll.setVisible(false);
+		s.gridx = 0;
+		s.gridy = 2;
+		s.gridwidth = 3;
+		s.gridheight = 1;
+		s.anchor = GridBagConstraints.CENTER;
+		gridbag.setConstraints(_scroll, s);
+		add(_scroll);
 
 		_buf = new byte[128];
 
@@ -243,10 +281,10 @@ class StrombergCarlson_Cabinet extends JPanel
 
 	public void keyTyped(KeyEvent e) {
 		char c = e.getKeyChar();
-		_shelf.type(c);
+		type(c);
 		if (c == KeyEvent.VK_ENTER) {
 			try {
-				_out.write(_shelf.typed().getBytes());
+				_out.write(typed().getBytes());
 			} catch (IOException ee) {
 			}
 		}
@@ -264,6 +302,25 @@ class StrombergCarlson_Cabinet extends JPanel
 		// _bell.ring(); // ring locally, too?
 	}
 
+	public void goOffHook(boolean off_hook) {
+		if (_off_hook != off_hook) {
+			_off_hook = off_hook;
+			Dimension dim = _top.getSize();
+			if (_off_hook_h == 0) {
+				_on_hook_h = dim.height;
+				_off_hook_h = _on_hook_h + text_height;
+			}
+			if (_off_hook) {
+				if (dim.height < _off_hook_h) dim.height = _off_hook_h;
+			} else {
+				if (dim.height == _off_hook_h) dim.height = _on_hook_h;
+			}
+			_top.setSize(dim);
+			_scroll.setVisible(_off_hook);
+			repaint();
+		}
+	}
+
 	public void run() {
 		int n;
 		while (true) {
@@ -277,7 +334,7 @@ class StrombergCarlson_Cabinet extends JPanel
 			if (s.equals("%RING\n")) {
 				_bell.ring();
 			} else {
-				_shelf.post(s);
+				post(s);
 			}
 		}
 		try {
@@ -285,6 +342,26 @@ class StrombergCarlson_Cabinet extends JPanel
 			_out.close();
 			_s.close();
 		} catch(IOException e) { }
+	}
+
+	public void post(String s) {
+		if (!_off_hook) return;
+		_text.append(">> " + s);
+		_text.setCaretPosition(_text.getText().length());
+	}
+
+	public void type(char c) {
+		if (!_off_hook) return;
+		String s = Character.toString(c);
+		_text.append(s);
+		_txt += s;
+	}
+
+	public String typed() {
+		if (!_off_hook) return null;
+		String s = _txt;
+		_txt = new String();
+		return s;
 	}
 }
 
@@ -389,7 +466,7 @@ class StrombergCarlson_Rec extends JPanel
 	public static final int obj_height = 85;
 
 	private boolean _off_hook;
-	private StrombergCarlson_Shelf _shelf;
+	private StrombergCarlson_Cabinet _cab;
 	private static final int[] rec_x = { 13, 21, 39, 47, 44, 16, 13 };
 	private static final int[] rec_y = { 71, 64, 64, 71, 85, 85, 71 };
 
@@ -433,9 +510,9 @@ class StrombergCarlson_Rec extends JPanel
 		}
 	}
 
-	public StrombergCarlson_Rec(StrombergCarlson_Shelf shelf) {
+	public StrombergCarlson_Rec(StrombergCarlson_Cabinet cab) {
 		_off_hook = false;
-		_shelf = shelf;
+		_cab = cab;
 		setOpaque(false);
 		setPreferredSize(new Dimension(obj_width, obj_height));
 		addMouseListener(this);
@@ -445,7 +522,7 @@ class StrombergCarlson_Rec extends JPanel
 
 	public void mouseClicked(MouseEvent e) {
 		_off_hook = !_off_hook;
-		_shelf.goOffHook(_off_hook);
+		_cab.goOffHook(_off_hook);
 		repaint();
 	}
 
@@ -455,7 +532,7 @@ class StrombergCarlson_Rec extends JPanel
 	public void mouseReleased(MouseEvent e) { }
 }
 
-class StrombergCarlson_Shelf extends JLayeredPane
+class StrombergCarlson_Shelf extends JPanel
 {
 	static final long serialVersionUID = 311000000010L;
 	public static final int obj_width = 100;
@@ -464,90 +541,20 @@ class StrombergCarlson_Shelf extends JLayeredPane
 	private static final int[] shelf_x = { 5, 95, 100, 0,  5 };
 	private static final int[] shelf_y = { 0,  0,  35, 35, 0 };
 
-	private boolean _off_hook;
-	private String _txt;
-	private JTextArea _text;
-	private JScrollPane _scroll;
-	private StrombergCarlson_Shelf_Overlay _shelf;
-
-	private class StrombergCarlson_Shelf_Overlay extends JPanel
-	{
-		static final long serialVersionUID = 311000000012L;
-
-		public void paint(Graphics g) {
-			super.paint(g);
-			if (!_off_hook) {
-				g.setColor(telephone.cabinet);
-				g.fillRect(0, 0, obj_width, obj_height);
-				g.setColor(telephone.well_lt);
-				g.fillPolygon(shelf_x, shelf_y, 4);
-				g.setColor(telephone.well_dk);
-				g.fillRect(0, 35, 100, 5);
-				g.fillRect(5, 35, 90, 15);
-			}
-		}
-
-		public StrombergCarlson_Shelf_Overlay() {
-			setOpaque(false);
-		}
+	public void paint(Graphics g) {
+		super.paint(g);
+		g.setColor(telephone.cabinet);
+		g.fillRect(0, 0, obj_width, obj_height);
+		g.setColor(telephone.well_lt);
+		g.fillPolygon(shelf_x, shelf_y, 4);
+		g.setColor(telephone.well_dk);
+		g.fillRect(0, 35, 100, 5);
+		g.fillRect(5, 35, 90, 15);
 	}
 
 	public StrombergCarlson_Shelf() {
-		_off_hook = false;
-		_txt = new String();
-		_text = new JTextArea();
-		_text.setEditable(false);
-		_text.setFocusable(false);
-		_text.setFont(telephone.font2);
-		_text.setBackground(telephone.well_lt);
-		//_text.setText("Chat Here");
-		_scroll = new JScrollPane(_text);
-		_scroll.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
-		_scroll.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
-		_scroll.setPreferredSize(new Dimension(obj_width, obj_height));
-		_scroll.setFocusable(false);
-		_scroll.setVisible(true);
-		_scroll.setBounds(0, 0, obj_width, obj_height);
-
-		_shelf = new StrombergCarlson_Shelf_Overlay();
-		_shelf.setPreferredSize(new Dimension(obj_width, obj_height));
-		_shelf.setBounds(0, 0, obj_width, obj_height);
-
-		add(_scroll, new Integer(10));
-		add(_shelf, new Integer(20));
 		setOpaque(false);
 		setPreferredSize(new Dimension(obj_width, obj_height));
-	}
-
-	public void goOffHook(boolean off_hook) {
-		if (_off_hook != off_hook) {
-			_off_hook = off_hook;
-			if (_off_hook) {
-				moveToFront(_scroll);
-			} else {
-				moveToBack(_scroll);
-			}
-			repaint();
-		}
-	}
-
-	public void post(String s) {
-		if (!_off_hook) return;
-		_text.append(">> " + s);
-	}
-
-	public void type(char c) {
-		if (!_off_hook) return;
-		String s = Character.toString(c);
-		_text.append(s);
-		_txt += s;
-	}
-
-	public String typed() {
-		if (!_off_hook) return null;
-		String s = _txt;
-		_txt = new String();
-		return s;
 	}
 }
 
