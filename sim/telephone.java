@@ -1,5 +1,5 @@
 // Copyright (c) 2011,2012 Douglas Miller
-// $Id: telephone.java,v 1.8 2012/02/12 20:46:01 drmiller Exp $
+// $Id: telephone.java,v 1.9 2012/02/13 15:29:25 drmiller Exp $
 
 import java.awt.*;
 import javax.swing.*;
@@ -12,7 +12,7 @@ import javax.swing.text.Caret;
 
 public class telephone
 {
-	final String ident = "$Id: telephone.java,v 1.8 2012/02/12 20:46:01 drmiller Exp $";
+	final String ident = "$Id: telephone.java,v 1.9 2012/02/13 15:29:25 drmiller Exp $";
 
 	static final Color cabinet = new Color(165, 125, 14);
 	static final Color cabinet_lt = new Color(185, 145, 34);
@@ -484,7 +484,7 @@ class StrombergCarlson_Magneto extends JPanel
 		setPreferredSize(new Dimension(obj_width, obj_height));
 		addMouseListener(this);
 		setFocusable(false);
-		_angle = 0;
+		_angle = 16;
 		_timer = new Timer(50, this);
 	}
 
