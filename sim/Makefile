@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.7 2012/02/12 21:34:13 drmiller Exp $
+# $Id: Makefile,v 1.8 2012/02/13 22:26:57 drmiller Exp $
 
 INSNAME = tele-sb-sim
 INSDIR = ~
@@ -22,13 +22,15 @@ telephone.class: telephone.java
 jar: switchboard.jar telephone.jar
 
 switchboard.jar: switchboard.class sb_manifest.txt
-	jar cfm $@ sb_manifest.txt switchboard.class Kellogg*.class
+	jar cfm $@ sb_manifest.txt switchboard.class Kellogg*.class \
+		icons/*.png sounds/*.wav
 
 sb_manifest.txt:
 	echo "Main-Class: switchboard" >$@
 
 telephone.jar: telephone.class t_manifest.txt
-	jar cfm $@ t_manifest.txt telephone.class StrombergCarlson*.class
+	jar cfm $@ t_manifest.txt telephone.class StrombergCarlson*.class \
+		icons/*.png sounds/*.wav
 
 t_manifest.txt:
 	echo "Main-Class: telephone" >$@
