@@ -1,5 +1,6 @@
 #!/bin/sh
-# $Id: run-Switchboard,v 1.2 2012/02/12 22:43:52 drmiller Exp $
+# $Id: run-Switchboard,v 1.3 2012/02/13 14:29:20 drmiller Exp $
 
-cd ~/tele-sb-sim
-exec java -jar switchboard.jar
+export INSTALLPATH=${0%/*}
+cd ${INSTALLPATH}
+exec java -jar switchboard.jar "${@}"

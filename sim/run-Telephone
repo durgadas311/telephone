@@ -1,6 +1,7 @@
 #!/bin/sh
-# $Id: run-Telephone,v 1.2 2012/02/12 22:43:52 drmiller Exp $
+# $Id: run-Telephone,v 1.3 2012/02/13 14:29:20 drmiller Exp $
 
+export INSTALLPATH=${0%/*}
+cd ${INSTALLPATH}
 # backgrounding allows OSX to run multiple instances
-cd ~/tele-sb-sim
-java -jar telephone.jar &
+java -jar telephone.jar "${@}" &
