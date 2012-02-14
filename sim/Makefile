@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.8 2012/02/13 22:26:57 drmiller Exp $
+# $Id: Makefile,v 1.9 2012/02/14 22:14:58 drmiller Exp $
 
 INSNAME = tele-sb-sim
 INSDIR = ~
@@ -37,8 +37,8 @@ t_manifest.txt:
 
 
 www: _FRC_
-	mkdir -p /http/durgadas.com/tele-sb-sim
-	cp www/*.html www/*.png /http/durgadas.com/tele-sb-sim
+	mkdir -p /http/durgadas.com/sims/tele-sb-sim
+	cp www/*.html www/*.png /http/durgadas.com/sims/tele-sb-sim
 
 temp_dest: all jar
 	mkdir -p $(TMPDEST)
