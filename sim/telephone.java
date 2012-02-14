@@ -1,5 +1,5 @@
 // Copyright (c) 2011,2012 Douglas Miller
-// $Id: telephone.java,v 1.9 2012/02/13 15:29:25 drmiller Exp $
+// $Id: telephone.java,v 1.10 2012/02/14 20:01:07 drmiller Exp $
 
 import java.awt.*;
 import javax.swing.*;
@@ -9,10 +9,11 @@ import javax.swing.border.*;
 import java.net.*;
 import java.io.*;
 import javax.swing.text.Caret;
+import javax.sound.sampled.*;
 
 public class telephone
 {
-	final String ident = "$Id: telephone.java,v 1.9 2012/02/13 15:29:25 drmiller Exp $";
+	final String ident = "$Id: telephone.java,v 1.10 2012/02/14 20:01:07 drmiller Exp $";
 
 	static final Color cabinet = new Color(165, 125, 14);
 	static final Color cabinet_lt = new Color(185, 145, 34);
@@ -380,7 +381,9 @@ class StrombergCarlson_Cabinet extends JPanel
 			if (n < 0) break;
 			String s = new String(_buf, 0, n);
 			if (s.equals("%RING\n")) {
-				_bell.ring();
+				_bell.ring(true);
+			} else if (s.equals("%RINGOFF\n")) {
+				_bell.ring(false);
 			} else if (s.startsWith("%NAME=")) {
 				_plate.setName(s.substring(6));
 			} else {
@@ -626,7 +629,8 @@ class StrombergCarlson_Bell extends JPanel
 	public static final int obj_height = 40;
 
 	private boolean _ring;
-	private javax.swing.Timer _timer;
+	//private javax.swing.Timer _timer;
+	private Clip _ringer;
 
 	public void paint(Graphics g) {
 		Graphics2D g2d = (Graphics2D)g;
@@ -657,20 +661,34 @@ class StrombergCarlson_Bell extends JPanel
 	public StrombergCarlson_Bell() {
 		setOpaque(false);
 		setPreferredSize(new Dimension(obj_width, obj_height));
-		_timer = new Timer(1000, this);
-	}
-
-	public void actionPerformed(ActionEvent e) {
-		if (e.getSource() == _timer) {
-			_timer.stop();
-			_ring = false;
-			repaint();
+		//_timer = new Timer(1000, this);
+		try {
+			_ringer = AudioSystem.getClip();
+			AudioInputStream wav = AudioSystem.getAudioInputStream(telephone.class.getResourceAsStream("sounds/ring.wav"));
+			_ringer.open(wav);
+			_ringer.setLoopPoints(0, -1);
+		} catch (Exception e) {
+System.err.println(e.getMessage());
 		}
 	}
 
-	public void ring() {
-		_ring = true;
-		_timer.start();
+	public void actionPerformed(ActionEvent e) {
+//		if (e.getSource() == _timer) {
+//			_timer.stop();
+//			_ring = false;
+//			repaint();
+//		}
+	}
+
+	public void ring(boolean on) {
+		_ring = on;
+		//_timer.start();
+		if (on) {
+			_ringer.setFramePosition(0);
+			_ringer.loop(Clip.LOOP_CONTINUOUSLY);
+		} else {
+			_ringer.loop(0);
+		}
 		repaint();
 	}
 }
