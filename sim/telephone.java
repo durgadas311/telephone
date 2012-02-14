@@ -1,5 +1,5 @@
 // Copyright (c) 2011,2012 Douglas Miller
-// $Id: telephone.java,v 1.10 2012/02/14 20:01:07 drmiller Exp $
+// $Id: telephone.java,v 1.11 2012/02/14 20:54:09 drmiller Exp $
 
 import java.awt.*;
 import javax.swing.*;
@@ -13,7 +13,7 @@ import javax.sound.sampled.*;
 
 public class telephone
 {
-	final String ident = "$Id: telephone.java,v 1.10 2012/02/14 20:01:07 drmiller Exp $";
+	final String ident = "$Id: telephone.java,v 1.11 2012/02/14 20:54:09 drmiller Exp $";
 
 	static final Color cabinet = new Color(165, 125, 14);
 	static final Color cabinet_lt = new Color(185, 145, 34);
@@ -97,7 +97,7 @@ public class telephone
 class StrombergCarlson_Cabinet extends JPanel
 		implements Runnable, KeyListener
 {
-	static final long serialVersionUID = 311000000010L;
+	static final long serialVersionUID = 311000000001L;
 
 	public static final int border_size = 2;
 	public static final int text_height = 100;
@@ -427,7 +427,7 @@ class StrombergCarlson_Cabinet extends JPanel
 class StrombergCarlson_Magneto extends JPanel
 	implements MouseListener, ActionListener
 {
-	static final long serialVersionUID = 311000000011L;
+	static final long serialVersionUID = 311000000002L;
 	public static final int obj_width = 50;
 	public static final int obj_height = 100;
 
@@ -520,7 +520,7 @@ class StrombergCarlson_Magneto extends JPanel
 class StrombergCarlson_Rec extends JPanel
 	implements MouseListener
 {
-	static final long serialVersionUID = 311000000005L;
+	static final long serialVersionUID = 311000000003L;
 	public static final int obj_width = 50;
 	public static final int obj_height = 85;
 
@@ -593,7 +593,7 @@ class StrombergCarlson_Rec extends JPanel
 
 class StrombergCarlson_Shelf extends JPanel
 {
-	static final long serialVersionUID = 311000000010L;
+	static final long serialVersionUID = 311000000004L;
 	public static final int obj_width = 130;
 	public static final int obj_height = 100;
 
@@ -624,12 +624,11 @@ class StrombergCarlson_Shelf extends JPanel
 class StrombergCarlson_Bell extends JPanel
 	implements ActionListener
 {
-	static final long serialVersionUID = 311000000010L;
+	static final long serialVersionUID = 311000000005L;
 	public static final int obj_width = 100;
 	public static final int obj_height = 40;
 
 	private boolean _ring;
-	//private javax.swing.Timer _timer;
 	private Clip _ringer;
 
 	public void paint(Graphics g) {
@@ -661,15 +660,19 @@ class StrombergCarlson_Bell extends JPanel
 	public StrombergCarlson_Bell() {
 		setOpaque(false);
 		setPreferredSize(new Dimension(obj_width, obj_height));
-		//_timer = new Timer(1000, this);
 		try {
 			_ringer = AudioSystem.getClip();
-			AudioInputStream wav = AudioSystem.getAudioInputStream(telephone.class.getResourceAsStream("sounds/ring.wav"));
+			AudioInputStream wav =
+				AudioSystem.getAudioInputStream(
+					telephone.class.getResourceAsStream(
+						"sounds/ring.wav"));
 			_ringer.open(wav);
-			_ringer.setLoopPoints(0, -1);
+			_ringer.setLoopPoints(0, 4500);
 		} catch (Exception e) {
 System.err.println(e.getMessage());
 		}
+//System.err.println("Frames="+_ringer.getFrameLength()+", time="+_ringer.getMicrosecondLength());
+// frame_loop = ((double)102000.0 / _ringer.getMicrosecondLength()) * _ringer.getFrameLength();
 	}
 
 	public void actionPerformed(ActionEvent e) {
@@ -682,7 +685,6 @@ System.err.println(e.getMessage());
 
 	public void ring(boolean on) {
 		_ring = on;
-		//_timer.start();
 		if (on) {
 			_ringer.setFramePosition(0);
 			_ringer.loop(Clip.LOOP_CONTINUOUSLY);
@@ -695,7 +697,7 @@ System.err.println(e.getMessage());
 
 class StrombergCarlson_Trans extends JPanel
 {
-	static final long serialVersionUID = 311000000010L;
+	static final long serialVersionUID = 311000000006L;
 	public static final int obj_width = 60;
 	public static final int obj_height = 60;
 
@@ -721,7 +723,7 @@ class StrombergCarlson_Trans extends JPanel
 
 class StrombergCarlson_NamePlate extends JPanel
 {
-	static final long serialVersionUID = 311000000010L;
+	static final long serialVersionUID = 311000000007L;
 	public static final int obj_width = 100;
 	public static final int obj_height = 65;
 
