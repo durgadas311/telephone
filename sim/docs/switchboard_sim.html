@@ -1,0 +1,77 @@
+<HTML>
+<!-- $Id: switchboard_sim.html,v 1.1 2012/02/14 22:47:05 drmiller Exp $ -->
+
+<H2>Running Environment</H2>
+
+<P>The simulator currently is configured by commandline options.
+That is expected to change shortly.
+
+<PRE>
+java -jar switchboard.jar [num-lines [num-circs]]
+</PRE>
+
+<P>Where "num-lines" is the number of phone lines to configure.
+The simulator forces numbers to be one of the following values:
+5, 10, 20, ...
+"num-circs" is the number of circuits. The maximum is 8, the default
+is 40% of the number of lines.
+
+<H2>Operating the Simulator</H2>
+
+<H3>Switchboard Operation</H3>
+
+<P>Currently, drap-n-drop is not supported.
+In general, clicking on an object activates it in some sense.
+
+<DL>
+<DT>Drops
+<DD>Clicking on a "drop" shutter will toggle the drop.
+Drops currently have no side-effects, eventually they could
+activate the "Night Alarm".
+<DT>Listen Switch
+<DD>Clicking on a "Listen" switch toggles it between ON and OFF.
+When one or more Listen switches are ON, there will appear
+a small text window below the switchboard, which is used
+to send and receive text messages with connected telephones.
+<DT>Ring Switch
+<DD>Left-clicking on a "Ring" switch pushes it up, Right-licking
+pulls it down. This switch is "momentary" contact, so the switch
+returns to the OFF position when the mouse button is released,
+unless the SHIFT key is held down. "Ring-back" sends the ring signal
+to the "Answer" plug. "Ring" sends the signal to the "Call" plug.
+<DT>Phone Plug
+<DD>Clicking on a Phone Plug toggles it between the "pulled out" and
+normal (seated) state, with visual feedback. Clicking on another
+plug while one is "selected" will seat the previous one and pull-out
+the current one.
+<DT>Phone (Line) Jacks
+<DD>Clicking on a Phone Jack does nothing unless a Phone Plug
+has been pulled-out. In that case, the plug is connected to the jack.
+Clicking on a jack that has a plug inserted will remove the plug
+and return it to it's seated position.
+<DT>Magneto
+<DD>Clicking on the magneto will turn the crank. Hold the mouse button
+down for the desired ring length. If a line is connected to
+one of the circuits, and the appropriate Ring switch is being
+held down, then that telephone connected to that line will ring.
+</DL>
+
+<H3>Telephone Sets</H3>
+
+<DL>
+<DT>Receiver
+<DD>Clicking on the receiver toggles between "On Hook" and "Off Hook".
+When "Off Hook", there will appear
+a small text window below the telephone, which is used
+to send and receive text messages with connected telephones and/or
+the switchboard.
+<DT>Magneto
+<DD>Clicking on the magneto will turn the crank. Hold the mouse button
+down for the desired ring length. Upon first ring, a "drop" will be
+triggered on the switchboard. If the telephone is currently
+unconnected, then the "Line Drop" will fall.
+If the line is connected to a circuit, then the drop associated
+with the plug that connects to the line will fall.
+</DL>
+
+</HTML>
