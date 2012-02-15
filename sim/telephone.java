@@ -1,5 +1,5 @@
 // Copyright (c) 2011,2012 Douglas Miller
-// $Id: telephone.java,v 1.11 2012/02/14 20:54:09 drmiller Exp $
+// $Id: telephone.java,v 1.12 2012/02/15 20:52:59 drmiller Exp $
 
 import java.awt.*;
 import javax.swing.*;
@@ -13,7 +13,7 @@ import javax.sound.sampled.*;
 
 public class telephone
 {
-	final String ident = "$Id: telephone.java,v 1.11 2012/02/14 20:54:09 drmiller Exp $";
+	final String ident = "$Id: telephone.java,v 1.12 2012/02/15 20:52:59 drmiller Exp $";
 
 	static final Color cabinet = new Color(165, 125, 14);
 	static final Color cabinet_lt = new Color(185, 145, 34);
@@ -64,25 +64,12 @@ public class telephone
 		//java.net.URL url = w600_fe.class.getResource("icons/wang600-48x48.png");
 		//Image img = Toolkit.getDefaultToolkit().getImage(url);
 		//front_end.setIconImage(img);
-		FontMetrics font_metrics = front_end.getFontMetrics(font);
 
 		String host = null;
 		String port = "31100";
-		Socket sock = null;
 
-		try {
-			if (host == null) {
-				sock = new Socket(InetAddress.getLocalHost(), Integer.parseInt(port));
-			} else {
-				sock = new Socket(host, Integer.parseInt(port));
-			}
-		} catch (IOException ee) {
-			System.err.println("Unable to open socket to telephone!");
-			System.exit(1);
-		}
-
-		StrombergCarlson_Cabinet cab = new StrombergCarlson_Cabinet(sock,
-						front_end, font_metrics);
+		StrombergCarlson_Cabinet cab = new StrombergCarlson_Cabinet(front_end,
+					host, port);
 		front_end.add(cab);
 
 		front_end.addKeyListener(cab);
@@ -122,18 +109,23 @@ class StrombergCarlson_Cabinet extends JPanel
 	private int _off_hook_h;
 	private int _on_hook_h;
 
-	public StrombergCarlson_Cabinet(Socket so,
-			Component top,
-			FontMetrics fm) {
-		font_metrics = fm;
+	private InetAddress _host;
+	private int _port;
+
+	public StrombergCarlson_Cabinet(Component top, String host, String port) {
+		font_metrics = top.getFontMetrics(telephone.font);
 		_top = top;
-		_s = so;
+		_s = null;
+		if (top == null) return; // damn warnings
 		try {
-			_in = so.getInputStream();
-			_out = so.getOutputStream();
+			if (host == null) {
+				_host = InetAddress.getLocalHost();
+			} else {
+				_host = InetAddress.getByName(host);
+			}
 		} catch (IOException ee) {
 		}
-		if (top == null) return; // damn warnings
+		_port = Integer.parseInt(port);
 
 		GridBagLayout gridbag = new GridBagLayout();
 		setLayout(gridbag);
@@ -373,28 +365,52 @@ class StrombergCarlson_Cabinet extends JPanel
 	public void run() {
 		int n;
 		while (true) {
-			try {
-				n = _in.read(_buf);
-			} catch(IOException e) {
-				n = -1;
-			}
-			if (n < 0) break;
-			String s = new String(_buf, 0, n);
-			if (s.equals("%RING\n")) {
-				_bell.ring(true);
-			} else if (s.equals("%RINGOFF\n")) {
-				_bell.ring(false);
-			} else if (s.startsWith("%NAME=")) {
-				_plate.setName(s.substring(6));
+			if (_s == null) {
+				try {
+					_s = new Socket(_host, _port);
+				} catch (IOException ee) {
+					_s = null;
+				}
+				if (_s == null) {
+					_plate.setName("waiting");
+					try {
+						Thread.sleep(5);
+					} catch (InterruptedException ee) {
+					}
+				} else {
+					try {
+						_in = _s.getInputStream();
+						_out = _s.getOutputStream();
+					} catch (IOException ee) {
+					}
+				}
 			} else {
-				post(s);
+				try {
+					n = _in.read(_buf);
+				} catch(IOException e) {
+					n = -1;
+				}
+				if (n < 0) {
+					try {
+						_in.close();
+						_out.close();
+						_s.close();
+					} catch(IOException e) { }
+					_s = null;
+					continue;
+				}
+				String s = new String(_buf, 0, n);
+				if (s.equals("%RING\n")) {
+					_bell.ring(true);
+				} else if (s.equals("%RINGOFF\n")) {
+					_bell.ring(false);
+				} else if (s.startsWith("%NAME=")) {
+					_plate.setName(s.substring(6));
+				} else {
+					post(s);
+				}
 			}
 		}
-		try {
-			_in.close();
-			_out.close();
-			_s.close();
-		} catch(IOException e) { }
 	}
 
 	public void post(String s) {
