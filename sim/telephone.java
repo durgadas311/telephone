@@ -1,5 +1,5 @@
 // Copyright (c) 2011,2012 Douglas Miller
-// $Id: telephone.java,v 1.12 2012/02/15 20:52:59 drmiller Exp $
+// $Id: telephone.java,v 1.13 2012/02/15 22:00:34 drmiller Exp $
 
 import java.awt.*;
 import javax.swing.*;
@@ -13,7 +13,7 @@ import javax.sound.sampled.*;
 
 public class telephone
 {
-	final String ident = "$Id: telephone.java,v 1.12 2012/02/15 20:52:59 drmiller Exp $";
+	final String ident = "$Id: telephone.java,v 1.13 2012/02/15 22:00:34 drmiller Exp $";
 
 	static final Color cabinet = new Color(165, 125, 14);
 	static final Color cabinet_lt = new Color(185, 145, 34);
@@ -676,6 +676,9 @@ class StrombergCarlson_Bell extends JPanel
 	public StrombergCarlson_Bell() {
 		setOpaque(false);
 		setPreferredSize(new Dimension(obj_width, obj_height));
+		// sometimes, this fails because of exclusive audio
+		// access. not sure how to share, but need to disable
+		// audio in that case.
 		try {
 			_ringer = AudioSystem.getClip();
 			AudioInputStream wav =
@@ -685,27 +688,25 @@ class StrombergCarlson_Bell extends JPanel
 			_ringer.open(wav);
 			_ringer.setLoopPoints(0, 4500);
 		} catch (Exception e) {
-System.err.println(e.getMessage());
+			_ringer = null;
+//System.err.println(e.getMessage());
 		}
 //System.err.println("Frames="+_ringer.getFrameLength()+", time="+_ringer.getMicrosecondLength());
 // frame_loop = ((double)102000.0 / _ringer.getMicrosecondLength()) * _ringer.getFrameLength();
 	}
 
 	public void actionPerformed(ActionEvent e) {
-//		if (e.getSource() == _timer) {
-//			_timer.stop();
-//			_ring = false;
-//			repaint();
-//		}
 	}
 
 	public void ring(boolean on) {
 		_ring = on;
-		if (on) {
-			_ringer.setFramePosition(0);
-			_ringer.loop(Clip.LOOP_CONTINUOUSLY);
-		} else {
-			_ringer.loop(0);
+		if (_ringer != null) {
+			if (on) {
+				_ringer.setFramePosition(0);
+				_ringer.loop(Clip.LOOP_CONTINUOUSLY);
+			} else {
+				_ringer.loop(0);
+			}
 		}
 		repaint();
 	}
