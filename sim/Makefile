@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.12 2012/02/17 21:31:44 drmiller Exp $
+# $Id: Makefile,v 1.13 2012/02/17 21:32:24 drmiller Exp $
 
 INSNAME = tele-sb-sim
 INSDIR = ~
@@ -85,6 +85,7 @@ tele-sb-sim.dmg: temp_app
 	cd $(TMPDEST); genisoimage -r -apple -no-desktop \
 		-V "TELE-SB-SIM" -hfs-volid "TELE-SB-SIM" \
 		-o ../../tele-sb-sim.dmg .
+	rm -rf $(TMPDIR)
 
 tele-sb-sim.zip: wtemp_dest
 	cd $(TMPDIR); rm -f ../tele-sb-sim.zip; zip -r ../tele-sb-sim.zip $(INSNAME)
