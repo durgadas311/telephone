@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.11 2012/02/17 15:50:09 drmiller Exp $
+# $Id: Makefile,v 1.12 2012/02/17 21:31:44 drmiller Exp $
 
 INSNAME = tele-sb-sim
 INSDIR = ~
@@ -13,7 +13,7 @@ WICONS = $(subst .png,.ico,$(PNGS))
 
 MANIFESTS = sb_manifest.txt t_manifest.txt
 JARS = switchboard.jar telephone.jar
-PACKAGES = tele-sb-sim.tgz tele-sb-sim.zip
+PACKAGES = tele-sb-sim.tgz tele-sb-sim.zip tele-sb-sim.dmg
 
 all: switchboard.class telephone.class
 
@@ -59,6 +59,17 @@ temp_dest: all jars
 	mkdir -p $(TMPDEST)/icons
 	cp icons/*-*x*.png icons/*-*x*.icns $(TMPDEST)/icons
 
+temp_app: all jars
+	for p in Switchboard Telephone; do \
+		jar=$${p#T}; jar=$${jar#S}; \
+		mkdir -p $(TMPDEST)/$${p}.app/Contents/{Resources,MacOS}; \
+		cp *$${jar}.jar $(TMPDEST)/$${p}.app/Contents/MacOS; \
+		cp icons/$${p}-*x*.icns $(TMPDEST)/$${p}.app/Contents/Resources/; \
+		cp run-$${p} $(TMPDEST)/$${p}.app/Contents/MacOS; \
+		chmod +x $(TMPDEST)/$${p}.app/Contents/MacOS/run-$${p}; \
+		cp $${p}.plist.tmplt $(TMPDEST)/$${p}.app/Contents/Info.plist; \
+	done
+
 wtemp_dest: all winicons jars
 	mkdir -p $(TMPDEST)
 	cp *.jar *.bat INSTALL.BAT $(TMPDEST)
@@ -69,6 +80,11 @@ wtemp_dest: all winicons jars
 tele-sb-sim.tgz: temp_dest
 	tar -czvf tele-sb-sim.tgz -C $(TMPDIR) $(INSNAME)
 	rm -rf $(TMPDIR)
+
+tele-sb-sim.dmg: temp_app
+	cd $(TMPDEST); genisoimage -r -apple -no-desktop \
+		-V "TELE-SB-SIM" -hfs-volid "TELE-SB-SIM" \
+		-o ../../tele-sb-sim.dmg .
 
 tele-sb-sim.zip: wtemp_dest
 	cd $(TMPDIR); rm -f ../tele-sb-sim.zip; zip -r ../tele-sb-sim.zip $(INSNAME)
