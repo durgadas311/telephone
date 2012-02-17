@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.10 2012/02/14 22:47:05 drmiller Exp $
+# $Id: Makefile,v 1.11 2012/02/17 15:50:09 drmiller Exp $
 
 INSNAME = tele-sb-sim
 INSDIR = ~
@@ -11,7 +11,16 @@ PNGS := $(filter %32x32.png %48x48.png %128x128.png, $(PNGS))
 ICNS = $(subst .png,.icns,$(PNGS))
 WICONS = $(subst .png,.ico,$(PNGS))
 
+MANIFESTS = sb_manifest.txt t_manifest.txt
+JARS = switchboard.jar telephone.jar
+PACKAGES = tele-sb-sim.tgz tele-sb-sim.zip
+
 all: switchboard.class telephone.class
+
+clean:
+
+clobber: clean
+	rm -f *.class $(JARS) $(PACKAGES) $(MANIFESTS)
 
 switchboard.class: switchboard.java
 	javac switchboard.java
@@ -19,7 +28,9 @@ switchboard.class: switchboard.java
 telephone.class: telephone.java
 	javac telephone.java
 
-jar: switchboard.jar telephone.jar
+jars: $(JARS)
+
+packages: $(PACKAGES)
 
 switchboard.jar: switchboard.class sb_manifest.txt
 	jar cfm $@ sb_manifest.txt switchboard.class Kellogg*.class \
@@ -41,25 +52,25 @@ www: _FRC_
 	cp www/*.html www/*.png /http/durgadas.com/sims/tele-sb-sim
 	cp docs/*.html docs/*.png /http/durgadas.com/sims/tele-sb-sim/docs
 
-temp_dest: all jar
+temp_dest: all jars
 	mkdir -p $(TMPDEST)
 	cp *.jar run-* INSTALL *.tmplt $(TMPDEST)
 	chmod +x $(TMPDEST)/run-* $(TMPDEST)/INSTALL
 	mkdir -p $(TMPDEST)/icons
 	cp icons/*-*x*.png icons/*-*x*.icns $(TMPDEST)/icons
 
-wtemp_dest: all winicons jar
+wtemp_dest: all winicons jars
 	mkdir -p $(TMPDEST)
 	cp *.jar *.bat INSTALL.BAT $(TMPDEST)
 	cp README.windows $(TMPDEST)/README.txt
 	mkdir -p $(TMPDEST)/icons
 	cp icons/*-*x*.ico $(TMPDEST)/icons
 
-package: temp_dest
+tele-sb-sim.tgz: temp_dest
 	tar -czvf tele-sb-sim.tgz -C $(TMPDIR) $(INSNAME)
 	rm -rf $(TMPDIR)
 
-winpack: wtemp_dest
+tele-sb-sim.zip: wtemp_dest
 	cd $(TMPDIR); rm -f ../tele-sb-sim.zip; zip -r ../tele-sb-sim.zip $(INSNAME)
 	rm -rf $(TMPDIR)
 

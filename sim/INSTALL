@@ -1,12 +1,21 @@
 #!/bin/sh
-# $Id: INSTALL,v 1.4 2012/02/17 14:52:42 drmiller Exp $
+# $Id: INSTALL,v 1.5 2012/02/17 15:50:09 drmiller Exp $
 
-pgm=${0}
-if [[ -L ${pgm} ]]; then
-	pgm=$(readlink ${pgm})
+export INSTALLPATH=${HOME}/tele-sb-sim
+
+# path might have blanks!!!
+pgm="${0}"
+if [[ -L "${pgm}" ]]; then
+	pgm=$(readlink "${pgm}")
 fi
-export INSTALLPATH=${pgm%/*}
-cd ${INSTALLPATH}
+cwd="${pgm%/*}"
+if [[ ! "${cwd}" -ef ${INSTALLPATH} ]]; then
+	echo "Moving ${cwd}..."
+	rm -rf ${INSTALLPATH}
+	cp -r "${cwd}" ${INSTALLPATH}
+	exec ${INSTALLPATH}/INSTALL
+	exit 1
+fi
 
 e=0
 for title in Switchboard Telephone; do
