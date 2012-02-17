@@ -1,9 +1,10 @@
 #!/bin/sh
-# $Id: run-Switchboard,v 1.4 2012/02/15 00:36:21 drmiller Exp $
+# $Id: run-Switchboard,v 1.5 2012/02/17 14:52:42 drmiller Exp $
 
-pgm=$(readlink ${0})
-pgm=${pgm:-${0}}
-export INSTALLPATH=${pgm%/*}
-echo "INSTALLPATH=${INSTALLPATH}"
-cd ${INSTALLPATH}
+pgm=${0}
+if [[ -L ${pgm} ]]; then
+	pgm=$(readlink ${pgm})
+fi
+export SWITCHBOARDHOME=${pgm%/*}
+cd ${SWITCHBOARDHOME}
 exec java -jar switchboard.jar

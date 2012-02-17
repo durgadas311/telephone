@@ -1,9 +1,11 @@
 #!/bin/sh
-# $Id: run-Telephone,v 1.4 2012/02/15 00:36:21 drmiller Exp $
+# $Id: run-Telephone,v 1.5 2012/02/17 14:52:42 drmiller Exp $
 
-pgm=$(readlink ${0})
-pgm=${pgm:-${0}}
-export INSTALLPATH=${pgm%/*}
-cd ${INSTALLPATH}
+pgm=${0}
+if [[ -L ${pgm} ]]; then
+	pgm=$(readlink ${pgm})
+fi
+export TELEPHONEHOME=${pgm%/*}
+cd ${TELEPHONEHOME}
 # backgrounding allows OSX to run multiple instances
 java -jar telephone.jar &
