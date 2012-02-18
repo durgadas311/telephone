@@ -1,5 +1,5 @@
 // Copyright (c) 2011,2012 Douglas Miller
-// $Id: switchboard.java,v 1.38 2012/02/17 23:31:32 drmiller Exp $
+// $Id: switchboard.java,v 1.39 2012/02/18 02:36:20 drmiller Exp $
 
 import java.awt.*;
 import javax.swing.*;
@@ -10,10 +10,12 @@ import javax.swing.border.*;
 import java.net.*;
 import java.io.*;
 import javax.swing.text.Caret;
+import java.awt.Desktop;
+import javax.swing.event.*;
 
 public class switchboard
 {
-	final String ident = "$Id: switchboard.java,v 1.38 2012/02/17 23:31:32 drmiller Exp $";
+	final String ident = "$Id: switchboard.java,v 1.39 2012/02/18 02:36:20 drmiller Exp $";
 
 	static final Color cabinet = new Color(165, 125, 14);
 
@@ -91,8 +93,32 @@ public class switchboard
 			num_circs = 1;
 		}
 
+		Kellogg_Help help = new Kellogg_Help(front_end);
+
 		Kellogg_Cabinet cab = new Kellogg_Cabinet(num_lines, num_circs,
-						front_end);
+						front_end, help);
+
+		JMenuBar mb = new JMenuBar();
+		JMenu mu;
+		JMenuItem mi;
+
+		mu = new JMenu("System");
+		mb.add(mu);
+		mi = new JMenuItem("Setup", KeyEvent.VK_U);
+		mi.addActionListener(cab);
+		mu.add(mi);
+
+		mu = new JMenu("Help");
+		mb.add(mu);
+		mi = help.getMenuItemHelp();
+		mi.addActionListener(cab);
+		mu.add(mi);
+		mi = help.getMenuItemAbout();
+		mi.addActionListener(cab);
+		mu.add(mi);
+
+		front_end.setJMenuBar(mb);
+
 		front_end.add(cab);
 
 		front_end.getContentPane().setBackground(Color.gray);
@@ -103,8 +129,199 @@ public class switchboard
 	}
 }
 
+class Kellogg_Help extends JComponent
+	implements ActionListener, WindowListener, ComponentListener, HyperlinkListener
+{
+	static final long serialVersionUID = 311000000031L;
+	private JFrame _frame;
+	private JEditorPane _text;
+	private JScrollPane _scroll;
+	private int _xoff, _yoff;
+	private JMenuItem _help;
+	private JMenuItem _about;
+	private boolean _help_on;
+	private JFrame _main;
+
+	public JMenuItem getMenuItemHelp() {
+		return _help;
+	}
+
+	public JMenuItem getMenuItemAbout() {
+		return _about;
+	}
+
+	public Kellogg_Help(JFrame frame) {
+		_main = frame;
+		_help = new JMenuItem("Show Help", KeyEvent.VK_H);;
+		_about = new JMenuItem("About", KeyEvent.VK_A);
+		_help_on = false;
+
+		java.net.URL url = switchboard.class.getResource("docs/operator.html");
+		_frame = new JFrame("Kellogg Switchboard Help");
+		_frame.setLayout(new FlowLayout());
+		try {
+			_text = new JEditorPane(url);
+		} catch (IOException ee) {
+			System.err.println("can't create Help JEditorPane "+url);
+		}
+		_text.setEditable(false);
+		_text.setFont(new Font("Sans-serif", Font.PLAIN, 12));
+		int z = _text.getFont().getSize();
+		_text.addHyperlinkListener(this);
+
+		_scroll = new JScrollPane(_text);
+		_scroll.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
+		_scroll.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+		_scroll.setPreferredSize(new Dimension(60 * z, 32 * z));
+
+		JMenuBar mb = new JMenuBar();
+		JMenu mu;
+		mu = new JMenu("Topic");
+		mb.add(mu);
+		JMenuItem mi;
+		mi = new JMenuItem("Operator Manual", KeyEvent.VK_B);
+		mi.addActionListener(this);
+		mu.add(mi);
+		mi = new JMenuItem("About the Simulator", KeyEvent.VK_S);
+		mi.addActionListener(this);
+		mu.add(mi);
+		mi = new JMenuItem("Resources and Links", KeyEvent.VK_L);
+		mi.addActionListener(this);
+		mu.add(mi);
+
+		_frame.setJMenuBar(mb);
+		_frame.add(_scroll);
+		_frame.pack();
+
+		_frame.addWindowListener(this);
+		_frame.addComponentListener(this);
+
+		Dimension fdim = _frame.getSize();
+		Dimension sdim = _scroll.getSize();
+		_xoff = fdim.width - sdim.width;
+		_yoff = fdim.height - sdim.height;
+	}
+
+	public void showAbout() {
+		java.net.URL url = switchboard.class.getResource("icons/switchboard.png");
+		JLabel lab = new JLabel("<HTML><CENTER>"+
+				"Kellogg 1915 Magneto Switchboard<BR>" +
+				"Simulator<BR>" +
+				"$Revision: 1.39 $ $Date: 2012/02/18 02:36:20 $<BR>" +
+				"<BR>" +
+				"<IMG SRC=\""+url.toString()+"\">" +
+				"<BR>" +
+				"Developed by Douglas Miller<BR>" +
+				"http://sims.durgadas.com<BR>" +
+				"</CENTER></HTML>");
+		JOptionPane.showMessageDialog(_main, lab,
+			"About: Switchboard Simulator", JOptionPane.PLAIN_MESSAGE);
+	}
+
+	public void toggle() {
+		setOn(!_help_on);
+	}
+
+	private void setOn(boolean on) {
+		_help_on = on;
+		if (on) {
+			_frame.pack();
+			_help.setText("Hide Help");
+		} else {
+			_help.setText("Show Help");
+		}
+		_frame.setVisible(on);
+	}
+
+	public void windowActivated(WindowEvent e) { }
+	public void windowClosed(WindowEvent e) { }
+	public void windowIconified(WindowEvent e) { }
+	public void windowOpened(WindowEvent e) { }
+	public void windowDeiconified(WindowEvent e) { }
+	public void windowDeactivated(WindowEvent e) { }
+
+	public void windowClosing(WindowEvent e) {
+		if (e.getWindow() == _frame) {
+			setOn(false);
+			return;
+		}
+	}
+
+	public void componentHidden(ComponentEvent e) { }
+	public void componentMoved(ComponentEvent e) { }
+	public void componentShown(ComponentEvent e) { }
+
+	public void componentResized(ComponentEvent e) {
+		if (e.getComponent() == _frame) {
+			Dimension fdim = _frame.getSize();
+			_scroll.setSize(fdim.width - _xoff, fdim.height - _yoff);
+			_scroll.setPreferredSize(_scroll.getSize());
+			_frame.setSize(fdim.width, fdim.height); // redundant?
+			_frame.setPreferredSize(_frame.getSize());
+			return;
+		}
+	}
+
+	public void actionPerformed(ActionEvent e) {
+		if (e.getSource() instanceof JMenuItem) {
+			JMenuItem m = (JMenuItem)e.getSource();
+			java.net.URL url = null;
+			// should use a table to lookup url?
+			if (m.getMnemonic() == KeyEvent.VK_B) {
+				url = switchboard.class.getResource("docs/operator.html");
+			} else if (m.getMnemonic() == KeyEvent.VK_S) {
+				url = switchboard.class.getResource("docs/switchboard_sim.html");
+			} else if (m.getMnemonic() == KeyEvent.VK_L) {
+				url = switchboard.class.getResource("docs/links.html");
+			} else {
+				System.err.println("help menu " + e.getActionCommand() +
+						" not implemented yet");
+				return;
+			}
+			try {
+				_text.setPage(url);
+			} catch (IOException ee) {
+			}
+			return;
+		}
+	}
+
+	public void hyperlinkUpdate(HyperlinkEvent r) {
+		if (r.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
+			if (r.getURL().getProtocol().compareTo("file") == 0 ||
+			    r.getURL().getProtocol().compareTo("jar") == 0) {
+				String doc = r.getURL().getFile();
+				if (r.getURL().getProtocol().compareTo("jar") == 0) {
+					// ugh! must be a better way...
+					doc = doc.replaceFirst("/switchboard\\.jar!/","/");
+					doc = doc.replaceFirst("file:","");
+				}
+				try {
+					Desktop.getDesktop().open(new File(doc));
+				} catch (IOException e) {
+					System.err.println("Exception "+e.getMessage()+" trying to open file "+
+						r.getURL().getProtocol()+" "+r.getURL().getFile());
+				} catch(Exception e) {
+					System.err.println("Exception "+e.getMessage()+" trying to open file "+
+						r.getURL().getProtocol()+" "+r.getURL().getFile());
+				}
+			} else {
+				try {
+					Desktop.getDesktop().browse(r.getURL().toURI());
+				} catch (IOException e) {
+					System.err.println("Exception trying to follow link "+
+						r.getURL().toString());
+				} catch(Exception e) {
+					System.err.println("Exception trying to follow link "+
+						r.getURL().toString());
+				}
+			}
+		}
+	}
+}
+
 class Kellogg_Cabinet extends JLayeredPane
-		implements Runnable, KeyListener
+		implements Runnable, KeyListener, ActionListener
 {
 	static final long serialVersionUID = 311000000010L;
 
@@ -134,6 +351,27 @@ class Kellogg_Cabinet extends JLayeredPane
 	private int _listen_h;
 	private int _no_listen_h;
 	private int _listening;
+
+	private Kellogg_Help _help;
+
+	private JTextField _nc_t;
+	private JPanel _nc_f;
+	private int _nc;
+	private JTextField _nl_t;
+	private JPanel _nl_f;
+	private int _nl;
+	private Checkbox _na_t;
+	private JPanel _na_f;
+	private boolean _na;
+	private Checkbox _tc_t;
+	private JPanel _tc_f;
+	private boolean _tc;
+	private JTextField _host_t;
+	private JPanel _host_f;
+	private InetAddress _host;
+	private JTextField _port_t;
+	private JPanel _port_f;
+	private int _port;
 
 	private class Kellogg_Cabinet_Overlay extends JPanel
 	{
@@ -197,10 +435,11 @@ class Kellogg_Cabinet extends JLayeredPane
 	}
 
 	public Kellogg_Cabinet(int num_lines, int num_circs,
-			Component top) {
+			Component top, Kellogg_Help help) {
 		font_metrics = top.getFontMetrics(switchboard.font);
 		font2_metrics = top.getFontMetrics(switchboard.font2);
 		_top = top;
+		_help = help;
 		_txt = new String();
 		_text = new JTextArea();
 		_text.setEditable(false);
@@ -333,8 +572,51 @@ class Kellogg_Cabinet extends JLayeredPane
 		_no_listen_h = 0;
 		_listening = 0;
 
+		_nc = 2;
+		_nc_t = new JTextField();
+		_nc_t.setPreferredSize(new Dimension(30,20));
+		_nc_f = new JPanel();
+		_nc_f.add(new JLabel("Num Circuits:"));
+		_nc_f.add(_nc_t);
+
+		_nl = 5;
+		_nl_t = new JTextField();
+		_nl_t.setPreferredSize(new Dimension(30,20));
+		_nl_f = new JPanel();
+		_nl_f.add(new JLabel("Num Lines:"));
+		_nl_f.add(_nl_t);
+
+		_na = false;
+		_na_t = new Checkbox();
+		_na_f = new JPanel();
+		_na_f.add(new JLabel("Night Alarm"));
+		_na_f.add(_na_t);
+
+		_tc = false;
+		_tc_t = new Checkbox();
+		_tc_f = new JPanel();
+		_tc_f.add(new JLabel("Toll Line"));
+		_tc_f.add(_tc_t);
+
 		try {
-			_ss = new ServerSocket(31100, 1, InetAddress.getLocalHost());
+			_host = InetAddress.getLocalHost();
+		} catch(IOException e) {
+		}
+		_host_t = new JTextField();
+		_host_t.setPreferredSize(new Dimension(150,20));
+		_host_f = new JPanel();
+		_host_f.add(new JLabel("Host:"));
+		_host_f.add(_host_t);
+
+		_port = 31100;
+		_port_t = new JTextField();
+		_port_t.setPreferredSize(new Dimension(50,20));
+		_port_f = new JPanel();
+		_port_f.add(new JLabel("Port:"));
+		_port_f.add(_port_t);
+
+		try {
+			_ss = new ServerSocket(_port, 1, _host);
 		} catch(IOException e) {
 		}
 		Thread t = new Thread(this);
@@ -581,6 +863,80 @@ class Kellogg_Cabinet extends JLayeredPane
 		_txt = new String();
 	}
 
+	public void actionPerformed(ActionEvent e) {
+		if (!(e.getSource() instanceof JMenuItem)) {
+			return;
+		}
+		JMenuItem m = (JMenuItem)e.getSource();
+		if (m.getMnemonic() == KeyEvent.VK_H) {
+			_help.toggle();
+			return;
+		}
+		if (m.getMnemonic() == KeyEvent.VK_A) {
+			_help.showAbout();
+			return;
+		}
+		if (m.getMnemonic() == KeyEvent.VK_U) {
+			_nl_t.setText(Integer.toString(_nl));
+			_nc_t.setText(Integer.toString(_nc));
+			_na_t.setState(_na);
+			_tc_t.setState(_tc);
+			_host_t.setText(_host.getHostName());
+			_port_t.setText(Integer.toString(_port));
+			Object[] dia = {
+				_nl_f, _nc_f, _na_f, _tc_f,
+				_host_f, _port_f };
+			int ret = JOptionPane.showConfirmDialog(this, dia,
+				"Set Switchboard Parameters",
+				JOptionPane.OK_CANCEL_OPTION,
+				JOptionPane.QUESTION_MESSAGE);
+			if (ret != JOptionPane.OK_OPTION) {
+				return;
+			}
+			// TBD: change parameters and restart?
+			try {
+				_nl = Integer.valueOf(_nl_t.getText());
+				if (_nl <= 5) {
+					_nl = 5;
+				} else {
+					_nl = (_nl + 9) / 10;
+					_nl *= 10;
+				}
+			} catch (NumberFormatException ee) {
+				_nl = 5;
+			}
+			try {
+				_nc = Integer.valueOf(_nc_t.getText());
+			} catch (NumberFormatException ee) {
+				_nc = 0;
+			}
+			if (_nc == 0) {
+				_nc = (_nl * 40) / 100;
+			}
+			if (_nc > 8) {
+				_nc = 8;
+			}
+			_na = _na_t.getState();
+			if (_na && _nc == 8) {
+				--_nc;
+			} else if (!_na && _nc == 7) {
+				++_nc;
+			}
+			_tc = _tc_t.getState();
+			InetAddress h;
+			try {
+				h = InetAddress.getByName(_host_t.getText());
+			} catch (IOException ee) {
+				h = null;
+			}
+			if (h != null) _host = h;
+			try {
+				_port = Integer.valueOf(_port_t.getText());
+			} catch (NumberFormatException ee) { }
+			return;
+		}
+	}
+
 	public void keyTyped(KeyEvent e) {
 		char c = e.getKeyChar();
 		type(c);
@@ -707,7 +1063,7 @@ class Kellogg_Magneto extends JPanel
 class Kellogg_Drop extends JPanel
 	implements MouseListener
 {
-	final String ident = "$Id: switchboard.java,v 1.38 2012/02/17 23:31:32 drmiller Exp $";
+	final String ident = "$Id: switchboard.java,v 1.39 2012/02/18 02:36:20 drmiller Exp $";
 	static final long serialVersionUID = 311000000003L;
 	public static final int obj_width = 60;
 	public static final int obj_height = 60;
@@ -816,7 +1172,7 @@ class Kellogg_Drop extends JPanel
 class Kellogg_Line extends JPanel
 	implements MouseListener, Runnable
 {
-	final String ident = "$Id: switchboard.java,v 1.38 2012/02/17 23:31:32 drmiller Exp $";
+	final String ident = "$Id: switchboard.java,v 1.39 2012/02/18 02:36:20 drmiller Exp $";
 	static final long serialVersionUID = 311000000002L;
 	public static final int obj_width = 60;
 	public static final int obj_height = 40;
@@ -988,7 +1344,7 @@ class Kellogg_Line extends JPanel
 
 class Kellogg_LineWithDrop extends JPanel
 {
-	final String ident = "$Id: switchboard.java,v 1.38 2012/02/17 23:31:32 drmiller Exp $";
+	final String ident = "$Id: switchboard.java,v 1.39 2012/02/18 02:36:20 drmiller Exp $";
 	static final long serialVersionUID = 311000000004L;
 	public static final int obj_width = 60;
 	public static final int obj_height =
@@ -1050,7 +1406,7 @@ class Kellogg_LineWithDrop extends JPanel
 class Kellogg_Plug extends JPanel
 	implements MouseListener
 {
-	final String ident = "$Id: switchboard.java,v 1.38 2012/02/17 23:31:32 drmiller Exp $";
+	final String ident = "$Id: switchboard.java,v 1.39 2012/02/18 02:36:20 drmiller Exp $";
 	static final long serialVersionUID = 311000000005L;
 	public static final int obj_width = 75;
 	public static final int obj_height = 55;
@@ -1175,7 +1531,7 @@ class Kellogg_Plug extends JPanel
 class Kellogg_RingSw extends JPanel
 	implements MouseListener, KeyListener
 {
-	final String ident = "$Id: switchboard.java,v 1.38 2012/02/17 23:31:32 drmiller Exp $";
+	final String ident = "$Id: switchboard.java,v 1.39 2012/02/18 02:36:20 drmiller Exp $";
 	static final long serialVersionUID = 311000000007L;
 	public static final int obj_width = 75;
 	public static final int obj_height = 66;
@@ -1290,7 +1646,7 @@ class Kellogg_RingSw extends JPanel
 class Kellogg_ListenSw extends JPanel
 	implements MouseListener
 {
-	final String ident = "$Id: switchboard.java,v 1.38 2012/02/17 23:31:32 drmiller Exp $";
+	final String ident = "$Id: switchboard.java,v 1.39 2012/02/18 02:36:20 drmiller Exp $";
 	static final long serialVersionUID = 311000000006L;
 	public static final int obj_width = 75;
 	public static final int obj_height = 64;
@@ -1356,7 +1712,7 @@ class Kellogg_ListenSw extends JPanel
 
 class Kellogg_Circuit extends JPanel
 {
-	final String ident = "$Id: switchboard.java,v 1.38 2012/02/17 23:31:32 drmiller Exp $";
+	final String ident = "$Id: switchboard.java,v 1.39 2012/02/18 02:36:20 drmiller Exp $";
 	static final long serialVersionUID = 311000000008L;
 	public static final int obj_width = 75;
 	public static final int obj_height = 10 + 10 +
