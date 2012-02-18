@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.14 2012/02/18 21:32:11 drmiller Exp $
+# $Id: Makefile,v 1.15 2012/02/18 23:15:24 drmiller Exp $
 
 INSNAME = tele-sb-sim
 INSDIR = ~
@@ -13,7 +13,7 @@ WICONS = $(subst .png,.ico,$(PNGS))
 
 MANIFESTS = sb_manifest.txt t_manifest.txt
 JARS = switchboard.jar telephone.jar
-PACKAGES = tele-sb-sim.tgz tele-sb-sim.zip tele-sb-sim.dmg
+PACKAGES = tele-sb-sim.tgz tele-sb-sim.exe tele-sb-sim.dmg
 
 all: switchboard.class telephone.class
 
@@ -87,9 +87,8 @@ tele-sb-sim.dmg: temp_app
 		-o ../../tele-sb-sim.dmg .
 	rm -rf $(TMPDIR)
 
-tele-sb-sim.zip: wtemp_dest
-	cd $(TMPDIR); rm -f ../tele-sb-sim.zip; zip -r ../tele-sb-sim.zip $(INSNAME)
-	rm -rf $(TMPDIR)
+tele-sb-sim.exe: all winicons jars tele-sb-sim.nsi
+	makensis tele-sb-sim.nsi
 
 install: temp_dest
 	rm -rf $(INSDEST)
