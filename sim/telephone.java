@@ -1,5 +1,5 @@
 // Copyright (c) 2011,2012 Douglas Miller
-// $Id: telephone.java,v 1.15 2012/02/18 16:21:20 drmiller Exp $
+// $Id: telephone.java,v 1.16 2012/02/18 17:05:36 drmiller Exp $
 
 import java.awt.*;
 import javax.swing.*;
@@ -16,7 +16,7 @@ import java.util.Properties;
 
 public class telephone
 {
-	final String ident = "$Id: telephone.java,v 1.15 2012/02/18 16:21:20 drmiller Exp $";
+	final String ident = "$Id: telephone.java,v 1.16 2012/02/18 17:05:36 drmiller Exp $";
 
 	static final Color cabinet = new Color(165, 125, 14);
 	static final Color cabinet_lt = new Color(185, 145, 34);
@@ -230,7 +230,7 @@ class StrombergCarlson_Help extends JComponent
 		JLabel lab = new JLabel("<HTML><CENTER>"+
 				"Stromberg-Carlson 1915 Magneto Telephone<BR>" +
 				"Simulator<BR>" +
-				"$Revision: 1.15 $ $Date: 2012/02/18 16:21:20 $<BR>" +
+				"$Revision: 1.16 $ $Date: 2012/02/18 17:05:36 $<BR>" +
 				"<BR>" +
 				"<IMG SRC=\""+url.toString()+"\">" +
 				"<BR>" +
@@ -714,6 +714,9 @@ class StrombergCarlson_Cabinet extends JPanel
 					try {
 						_in = _s.getInputStream();
 						_out = _s.getOutputStream();
+						String s = "%NAME=" +
+							System.getProperty("user.name");
+						_out.write(s.getBytes());
 					} catch (IOException ee) {
 					}
 				}
