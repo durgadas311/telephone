@@ -1,5 +1,5 @@
 // Copyright (c) 2011,2012 Douglas Miller
-// $Id: telephone.java,v 1.13 2012/02/15 22:00:34 drmiller Exp $
+// $Id: telephone.java,v 1.14 2012/02/18 15:08:39 drmiller Exp $
 
 import java.awt.*;
 import javax.swing.*;
@@ -10,10 +10,12 @@ import java.net.*;
 import java.io.*;
 import javax.swing.text.Caret;
 import javax.sound.sampled.*;
+import java.awt.Desktop;
+import javax.swing.event.*;
 
 public class telephone
 {
-	final String ident = "$Id: telephone.java,v 1.13 2012/02/15 22:00:34 drmiller Exp $";
+	final String ident = "$Id: telephone.java,v 1.14 2012/02/18 15:08:39 drmiller Exp $";
 
 	static final Color cabinet = new Color(165, 125, 14);
 	static final Color cabinet_lt = new Color(185, 145, 34);
@@ -65,11 +67,32 @@ public class telephone
 		//Image img = Toolkit.getDefaultToolkit().getImage(url);
 		//front_end.setIconImage(img);
 
-		String host = null;
-		String port = "31100";
+		StrombergCarlson_Help help = new StrombergCarlson_Help(front_end);
 
-		StrombergCarlson_Cabinet cab = new StrombergCarlson_Cabinet(front_end,
-					host, port);
+		StrombergCarlson_Cabinet cab = new StrombergCarlson_Cabinet(
+						front_end, help);
+
+		JMenuBar mb = new JMenuBar();
+		JMenu mu;
+		JMenuItem mi;
+
+		mu = new JMenu("System");
+		mb.add(mu);
+		mi = new JMenuItem("Setup", KeyEvent.VK_U);
+		mi.addActionListener(cab);
+		mu.add(mi);
+
+		mu = new JMenu("Help");
+		mb.add(mu);
+		mi = help.getMenuItemHelp();
+		mi.addActionListener(cab);
+		mu.add(mi);
+		mi = help.getMenuItemAbout();
+		mi.addActionListener(cab);
+		mu.add(mi);
+
+		front_end.setJMenuBar(mb);
+
 		front_end.add(cab);
 
 		front_end.addKeyListener(cab);
@@ -80,9 +103,200 @@ public class telephone
 		front_end.setVisible(true);
 	}
 }
+ 
+class StrombergCarlson_Help extends JComponent
+	implements ActionListener, WindowListener, ComponentListener, HyperlinkListener
+{
+	static final long serialVersionUID = 311000000031L;
+	private JFrame _frame;
+	private JEditorPane _text;
+	private JScrollPane _scroll;
+	private int _xoff, _yoff;
+	private JMenuItem _help;
+	private JMenuItem _about;
+	private boolean _help_on;
+	private JFrame _main;
+
+	public JMenuItem getMenuItemHelp() {
+		return _help;
+	}
+
+	public JMenuItem getMenuItemAbout() {
+		return _about;
+	}
+
+	public StrombergCarlson_Help(JFrame frame) {
+		_main = frame;
+		_help = new JMenuItem("Show Help", KeyEvent.VK_H);;
+		_about = new JMenuItem("About", KeyEvent.VK_A);
+		_help_on = false;
+
+		java.net.URL url = switchboard.class.getResource("docs/subscriber.html");
+		_frame = new JFrame("Stromberg-Carlson Telephone Help");
+		_frame.setLayout(new FlowLayout());
+		try {
+			_text = new JEditorPane(url);
+		} catch (IOException ee) {
+			System.err.println("can't create Help JEditorPane "+url);
+		}
+		_text.setEditable(false);
+		_text.setFont(new Font("Sans-serif", Font.PLAIN, 12));
+		int z = _text.getFont().getSize();
+		_text.addHyperlinkListener(this);
+
+		_scroll = new JScrollPane(_text);
+		_scroll.setVerticalScrollBarPolicy(ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS);
+		_scroll.setHorizontalScrollBarPolicy(ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+		_scroll.setPreferredSize(new Dimension(60 * z, 32 * z));
+
+		JMenuBar mb = new JMenuBar();
+		JMenu mu;
+		mu = new JMenu("Topic");
+		mb.add(mu);
+		JMenuItem mi;
+		mi = new JMenuItem("Operator Manual", KeyEvent.VK_B);
+		mi.addActionListener(this);
+		mu.add(mi);
+		mi = new JMenuItem("About the Simulator", KeyEvent.VK_S);
+		mi.addActionListener(this);
+		mu.add(mi);
+		mi = new JMenuItem("Resources and Links", KeyEvent.VK_L);
+		mi.addActionListener(this);
+		mu.add(mi);
+
+		_frame.setJMenuBar(mb);
+		_frame.add(_scroll);
+		_frame.pack();
+
+		_frame.addWindowListener(this);
+		_frame.addComponentListener(this);
+
+		Dimension fdim = _frame.getSize();
+		Dimension sdim = _scroll.getSize();
+		_xoff = fdim.width - sdim.width;
+		_yoff = fdim.height - sdim.height;
+	}
+
+	public void showAbout() {
+		java.net.URL url = switchboard.class.getResource("icons/telephone.png");
+		JLabel lab = new JLabel("<HTML><CENTER>"+
+				"Stromberg-Carlson 1915 Magneto Telephone<BR>" +
+				"Simulator<BR>" +
+				"$Revision: 1.14 $ $Date: 2012/02/18 15:08:39 $<BR>" +
+				"<BR>" +
+				"<IMG SRC=\""+url.toString()+"\">" +
+				"<BR>" +
+				"Developed by Douglas Miller<BR>" +
+				"http://sims.durgadas.com<BR>" +
+				"</CENTER></HTML>");
+		JOptionPane.showMessageDialog(_main, lab,
+			"About: Switchboard Simulator", JOptionPane.PLAIN_MESSAGE);
+	}
+
+	public void toggle() {
+		setOn(!_help_on);
+	}
+
+	private void setOn(boolean on) {
+		_help_on = on;
+		if (on) {
+			_frame.pack();
+			_help.setText("Hide Help");
+		} else {
+			_help.setText("Show Help");
+		}
+		_frame.setVisible(on);
+	}
+
+	public void windowActivated(WindowEvent e) { }
+	public void windowClosed(WindowEvent e) { }
+	public void windowIconified(WindowEvent e) { }
+	public void windowOpened(WindowEvent e) { }
+	public void windowDeiconified(WindowEvent e) { }
+	public void windowDeactivated(WindowEvent e) { }
+
+	public void windowClosing(WindowEvent e) {
+		if (e.getWindow() == _frame) {
+			setOn(false);
+			return;
+		}
+	}
+
+	public void componentHidden(ComponentEvent e) { }
+	public void componentMoved(ComponentEvent e) { }
+	public void componentShown(ComponentEvent e) { }
+
+	public void componentResized(ComponentEvent e) {
+		if (e.getComponent() == _frame) {
+			Dimension fdim = _frame.getSize();
+			_scroll.setSize(fdim.width - _xoff, fdim.height - _yoff);
+			_scroll.setPreferredSize(_scroll.getSize());
+			_frame.setSize(fdim.width, fdim.height); // redundant?
+			_frame.setPreferredSize(_frame.getSize());
+			return;
+		}
+	}
+
+	public void actionPerformed(ActionEvent e) {
+		if (e.getSource() instanceof JMenuItem) {
+			JMenuItem m = (JMenuItem)e.getSource();
+			java.net.URL url = null;
+			// should use a table to lookup url?
+			if (m.getMnemonic() == KeyEvent.VK_B) {
+				url = switchboard.class.getResource("docs/subscriber.html");
+			} else if (m.getMnemonic() == KeyEvent.VK_S) {
+				url = switchboard.class.getResource("docs/switchboard_sim.html");
+			} else if (m.getMnemonic() == KeyEvent.VK_L) {
+				url = switchboard.class.getResource("docs/links.html");
+			} else {
+				System.err.println("help menu " + e.getActionCommand() +
+						" not implemented yet");
+				return;
+			}
+			try {
+				_text.setPage(url);
+			} catch (IOException ee) {
+			}
+			return;
+		}
+	}
+
+	public void hyperlinkUpdate(HyperlinkEvent r) {
+		if (r.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
+			if (r.getURL().getProtocol().compareTo("file") == 0 ||
+			    r.getURL().getProtocol().compareTo("jar") == 0) {
+				String doc = r.getURL().getFile();
+				if (r.getURL().getProtocol().compareTo("jar") == 0) {
+					// ugh! must be a better way...
+					doc = doc.replaceFirst("/telephone\\.jar!/","/");
+					doc = doc.replaceFirst("file:","");
+				}
+				try {
+					Desktop.getDesktop().open(new File(doc));
+				} catch (IOException e) {
+					System.err.println("Exception "+e.getMessage()+" trying to open file "+
+						r.getURL().getProtocol()+" "+r.getURL().getFile());
+				} catch(Exception e) {
+					System.err.println("Exception "+e.getMessage()+" trying to open file "+
+						r.getURL().getProtocol()+" "+r.getURL().getFile());
+				}
+			} else {
+				try {
+					Desktop.getDesktop().browse(r.getURL().toURI());
+				} catch (IOException e) {
+					System.err.println("Exception trying to follow link "+
+						r.getURL().toString());
+				} catch(Exception e) {
+					System.err.println("Exception trying to follow link "+
+						r.getURL().toString());
+				}
+			}
+		}
+	}
+}
 
 class StrombergCarlson_Cabinet extends JPanel
-		implements Runnable, KeyListener
+		implements Runnable, KeyListener, ActionListener
 {
 	static final long serialVersionUID = 311000000001L;
 
@@ -109,23 +323,20 @@ class StrombergCarlson_Cabinet extends JPanel
 	private int _off_hook_h;
 	private int _on_hook_h;
 
+	private StrombergCarlson_Help _help;
+
+	private JTextField _host_t;
+	private JPanel _host_f;
 	private InetAddress _host;
+	private JTextField _port_t;
+	private JPanel _port_f;
 	private int _port;
 
-	public StrombergCarlson_Cabinet(Component top, String host, String port) {
+	public StrombergCarlson_Cabinet(Component top, StrombergCarlson_Help help) {
 		font_metrics = top.getFontMetrics(telephone.font);
 		_top = top;
+		_help = help;
 		_s = null;
-		if (top == null) return; // damn warnings
-		try {
-			if (host == null) {
-				_host = InetAddress.getLocalHost();
-			} else {
-				_host = InetAddress.getByName(host);
-			}
-		} catch (IOException ee) {
-		}
-		_port = Integer.parseInt(port);
 
 		GridBagLayout gridbag = new GridBagLayout();
 		setLayout(gridbag);
@@ -312,11 +523,67 @@ class StrombergCarlson_Cabinet extends JPanel
 		s.anchor = GridBagConstraints.CENTER;
 		gridbag.setConstraints(_scroll, s);
 		add(_scroll);
+ 
+		try {
+			_host = InetAddress.getLocalHost();
+		} catch(IOException e) {
+		}
+		_host_t = new JTextField();
+		_host_t.setPreferredSize(new Dimension(150,20));
+		_host_f = new JPanel();
+		_host_f.add(new JLabel("Host:"));
+		_host_f.add(_host_t);
+
+		_port = 31100;
+		_port_t = new JTextField();
+		_port_t.setPreferredSize(new Dimension(50,20));
+		_port_f = new JPanel();
+		_port_f.add(new JLabel("Port:"));
+		_port_f.add(_port_t);
 
 		_buf = new byte[128];
 
 		Thread t = new Thread(this);
 		t.start();
+	}
+ 
+	public void actionPerformed(ActionEvent e) {
+		if (!(e.getSource() instanceof JMenuItem)) {
+			return;
+		}
+		JMenuItem m = (JMenuItem)e.getSource();
+		if (m.getMnemonic() == KeyEvent.VK_H) {
+			_help.toggle();
+			return;
+		}
+		if (m.getMnemonic() == KeyEvent.VK_A) {
+			_help.showAbout();
+			return;
+		}
+		if (m.getMnemonic() == KeyEvent.VK_U) {
+			_host_t.setText(_host.getHostName());
+			_port_t.setText(Integer.toString(_port));
+			Object[] dia = { _host_f, _port_f };
+			int ret = JOptionPane.showConfirmDialog(this, dia,
+				"Set Switchboard Parameters",
+				JOptionPane.OK_CANCEL_OPTION,
+				JOptionPane.QUESTION_MESSAGE);
+			if (ret != JOptionPane.OK_OPTION) {
+				return;
+			}
+			// TBD: change parameters and restart?
+			InetAddress h;
+			try {
+				h = InetAddress.getByName(_host_t.getText());
+			} catch (IOException ee) {
+				h = null;
+			}
+			if (h != null) _host = h;
+			try {
+				_port = Integer.valueOf(_port_t.getText());
+			} catch (NumberFormatException ee) { }
+			return;
+		}
 	}
 
 	public void keyTyped(KeyEvent e) {
