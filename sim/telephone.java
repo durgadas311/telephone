@@ -1,5 +1,5 @@
 // Copyright (c) 2011,2012 Douglas Miller
-// $Id: telephone.java,v 1.16 2012/02/18 17:05:36 drmiller Exp $
+// $Id: telephone.java,v 1.17 2012/02/18 21:32:11 drmiller Exp $
 
 import java.awt.*;
 import javax.swing.*;
@@ -16,7 +16,7 @@ import java.util.Properties;
 
 public class telephone
 {
-	final String ident = "$Id: telephone.java,v 1.16 2012/02/18 17:05:36 drmiller Exp $";
+	final String ident = "$Id: telephone.java,v 1.17 2012/02/18 21:32:11 drmiller Exp $";
 
 	static final Color cabinet = new Color(165, 125, 14);
 	static final Color cabinet_lt = new Color(185, 145, 34);
@@ -179,7 +179,7 @@ class StrombergCarlson_Help extends JComponent
 		_about = new JMenuItem("About", KeyEvent.VK_A);
 		_help_on = false;
 
-		java.net.URL url = switchboard.class.getResource("docs/subscriber.html");
+		java.net.URL url = telephone.class.getResource("docs/subscriber.html");
 		_frame = new JFrame("Stromberg-Carlson Telephone Help");
 		_frame.setLayout(new FlowLayout());
 		try {
@@ -226,11 +226,11 @@ class StrombergCarlson_Help extends JComponent
 	}
 
 	public void showAbout() {
-		java.net.URL url = switchboard.class.getResource("icons/telephone.png");
+		java.net.URL url = telephone.class.getResource("icons/telephone.png");
 		JLabel lab = new JLabel("<HTML><CENTER>"+
 				"Stromberg-Carlson 1915 Magneto Telephone<BR>" +
 				"Simulator<BR>" +
-				"$Revision: 1.16 $ $Date: 2012/02/18 17:05:36 $<BR>" +
+				"$Revision: 1.17 $ $Date: 2012/02/18 21:32:11 $<BR>" +
 				"<BR>" +
 				"<IMG SRC=\""+url.toString()+"\">" +
 				"<BR>" +
@@ -291,11 +291,11 @@ class StrombergCarlson_Help extends JComponent
 			java.net.URL url = null;
 			// should use a table to lookup url?
 			if (m.getMnemonic() == KeyEvent.VK_B) {
-				url = switchboard.class.getResource("docs/subscriber.html");
+				url = telephone.class.getResource("docs/subscriber.html");
 			} else if (m.getMnemonic() == KeyEvent.VK_S) {
-				url = switchboard.class.getResource("docs/switchboard_sim.html");
+				url = telephone.class.getResource("docs/switchboard_sim.html");
 			} else if (m.getMnemonic() == KeyEvent.VK_L) {
-				url = switchboard.class.getResource("docs/links.html");
+				url = telephone.class.getResource("docs/links.html");
 			} else {
 				System.err.println("help menu " + e.getActionCommand() +
 						" not implemented yet");
