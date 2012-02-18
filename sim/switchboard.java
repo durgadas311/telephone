@@ -1,5 +1,5 @@
 // Copyright (c) 2011,2012 Douglas Miller
-// $Id: switchboard.java,v 1.39 2012/02/18 02:36:20 drmiller Exp $
+// $Id: switchboard.java,v 1.40 2012/02/18 16:21:20 drmiller Exp $
 
 import java.awt.*;
 import javax.swing.*;
@@ -12,10 +12,11 @@ import java.io.*;
 import javax.swing.text.Caret;
 import java.awt.Desktop;
 import javax.swing.event.*;
+import java.util.Properties;
 
 public class switchboard
 {
-	final String ident = "$Id: switchboard.java,v 1.39 2012/02/18 02:36:20 drmiller Exp $";
+	final String ident = "$Id: switchboard.java,v 1.40 2012/02/18 16:21:20 drmiller Exp $";
 
 	static final Color cabinet = new Color(165, 125, 14);
 
@@ -56,46 +57,20 @@ public class switchboard
 
 	static final Font font = new Font("Serif", Font.PLAIN, 18);
 	static final Font font2 = new Font("Serif", Font.PLAIN, 12);
+	static JFrame front_end;
 
 	public static void main(String[] args) {
 
-		JFrame front_end = new JFrame("Kellogg 1915 Telephone Switchboard");
+		front_end = new JFrame("Kellogg 1915 Telephone Switchboard");
 		//java.net.URL url = w600_fe.class.getResource("icons/wang600-48x48.png");
 		//Image img = Toolkit.getDefaultToolkit().getImage(url);
 		//front_end.setIconImage(img);
 
-		int num_lines = 0;
-		int num_circs = 0;
-
-		if (args.length > 0) {
-			num_lines = Integer.valueOf(args[0]);
-			if (args.length > 1) {
-				num_circs = Integer.valueOf(args[1]);
-			}
-		}
-		if (num_lines < 5) {
-			num_lines = 5;
-		} else if (num_lines < Kellogg_Cabinet.lines_per_row) {
-			num_lines = Kellogg_Cabinet.lines_per_row;
-		} else {
-			num_lines = (num_lines + Kellogg_Cabinet.lines_per_row - 1) /
-							Kellogg_Cabinet.lines_per_row;
-			num_lines *= Kellogg_Cabinet.lines_per_row;
-		}
-		if (num_circs == 0) {
-			// 40% circuits to lines ratio...
-			num_circs = (num_lines * 40) / 100;
-		}
-		if (num_circs > Kellogg_Cabinet.circs_per_cab) {
-			num_circs = Kellogg_Cabinet.circs_per_cab;
-		}
-		if (num_circs <= 0) {
-			num_circs = 1;
-		}
+		Kellogg_Properties prop = new Kellogg_Properties();
 
 		Kellogg_Help help = new Kellogg_Help(front_end);
 
-		Kellogg_Cabinet cab = new Kellogg_Cabinet(num_lines, num_circs,
+		Kellogg_Cabinet cab = new Kellogg_Cabinet(prop,
 						front_end, help);
 
 		JMenuBar mb = new JMenuBar();
@@ -127,12 +102,60 @@ public class switchboard
 		front_end.pack();
 		front_end.setVisible(true);
 	}
+
+	static public void fatal(String op, String err) {
+		JOptionPane.showMessageDialog(front_end,
+			new JLabel(err),
+			op + " Error", JOptionPane.ERROR_MESSAGE);
+		System.exit(1);
+	}
+
+	static public void warning(String op, String err) {
+		JOptionPane.showMessageDialog(front_end,
+			new JLabel(err),
+			op + " Warning", JOptionPane.WARNING_MESSAGE);
+	}
+}
+
+class Kellogg_Properties extends Properties
+{
+	static final long serialVersionUID = 311000000014L;
+	private String _cfg;
+
+	public Kellogg_Properties() {
+		_cfg = System.getProperty("user.home") + "/.tele-sb-sim.rc";
+		try {
+			FileInputStream cfg = new FileInputStream(_cfg);
+			load(cfg);
+			cfg.close();
+		} catch (Exception e) {
+			//switchboard.warning("Load Setup", e.getMessage());
+			// set defaults
+			setProperty("switchboard_lines", "5");
+			setProperty("switchboard_circuits", "2");
+			setProperty("switchboard_night_alarm", "false");
+			setProperty("switchboard_toll_line", "false");
+			setProperty("switchboard_host", "localhost");
+			setProperty("switchboard_port", "31100");
+			// save, and force existence of file?
+		}
+	}
+
+	public void save() {
+		try {
+			FileOutputStream cfg = new FileOutputStream(_cfg);
+			store(cfg, "Saved by switchboard");
+			cfg.close();
+		} catch (Exception e) {
+			switchboard.warning("Save Setup", e.getMessage());
+		}
+	}
 }
 
 class Kellogg_Help extends JComponent
 	implements ActionListener, WindowListener, ComponentListener, HyperlinkListener
 {
-	static final long serialVersionUID = 311000000031L;
+	static final long serialVersionUID = 311000000013L;
 	private JFrame _frame;
 	private JEditorPane _text;
 	private JScrollPane _scroll;
@@ -207,7 +230,7 @@ class Kellogg_Help extends JComponent
 		JLabel lab = new JLabel("<HTML><CENTER>"+
 				"Kellogg 1915 Magneto Switchboard<BR>" +
 				"Simulator<BR>" +
-				"$Revision: 1.39 $ $Date: 2012/02/18 02:36:20 $<BR>" +
+				"$Revision: 1.40 $ $Date: 2012/02/18 16:21:20 $<BR>" +
 				"<BR>" +
 				"<IMG SRC=\""+url.toString()+"\">" +
 				"<BR>" +
@@ -353,6 +376,7 @@ class Kellogg_Cabinet extends JLayeredPane
 	private int _listening;
 
 	private Kellogg_Help _help;
+	private Kellogg_Properties _prop;
 
 	private JTextField _nc_t;
 	private JPanel _nc_f;
@@ -434,12 +458,16 @@ class Kellogg_Cabinet extends JLayeredPane
 		}
 	}
 
-	public Kellogg_Cabinet(int num_lines, int num_circs,
+	public Kellogg_Cabinet(Kellogg_Properties prop,
 			Component top, Kellogg_Help help) {
 		font_metrics = top.getFontMetrics(switchboard.font);
 		font2_metrics = top.getFontMetrics(switchboard.font2);
 		_top = top;
 		_help = help;
+		_prop = prop;
+		_nc = Integer.valueOf(_prop.getProperty("switchboard_circuits"));
+		_nl = Integer.valueOf(_prop.getProperty("switchboard_lines"));
+
 		_txt = new String();
 		_text = new JTextArea();
 		_text.setEditable(false);
@@ -460,19 +488,19 @@ class Kellogg_Cabinet extends JLayeredPane
 		_scroll.setVisible(false);
 
 		int n = lines_per_row;
-		if (num_lines < lines_per_row) n = num_lines;
-		cab_width = num_circs * Kellogg_Circuit.obj_width;
+		if (_nl < lines_per_row) n = _nl;
+		cab_width = _nc * Kellogg_Circuit.obj_width;
 		if (cab_width < n * Kellogg_LineWithDrop.obj_width) {
 			cab_width = n * Kellogg_LineWithDrop.obj_width;
 		}
-		int rows = (num_lines + lines_per_row - 1) / lines_per_row;
+		int rows = (_nl + lines_per_row - 1) / lines_per_row;
 		_sel_plug = null;
-		_conn_plugs = new Kellogg_Plug[num_circs * 2];
-		_conn_lines = new Kellogg_Line[num_circs * 2];
+		_conn_plugs = new Kellogg_Plug[_nc * 2];
+		_conn_lines = new Kellogg_Line[_nc * 2];
 		//Dimension dim = new Dimension(line_width * lines_per_row, 1);
 
-		_lines = new Kellogg_Line[num_lines];
-		_nlines = num_lines;
+		_lines = new Kellogg_Line[_nl];
+		_nlines = _nl;
 
 		JPanel base = new JPanel();
 		GridBagLayout gridbag = new GridBagLayout();
@@ -496,7 +524,7 @@ class Kellogg_Cabinet extends JLayeredPane
 		upper.setBorder(BorderFactory.createBevelBorder(BevelBorder.RAISED,
 					switchboard.well_lt, switchboard.well_dk));
 
-		JPanel lp = makeLinePanel(num_lines);
+		JPanel lp = makeLinePanel(_nl);
 		s.gridx = 0;
 		s.gridy = 0;
 		s.gridwidth = 1;
@@ -505,7 +533,7 @@ class Kellogg_Cabinet extends JLayeredPane
 		upper.add(lp);
 
 		JPanel circs = new JPanel();
-		JPanel ro = makeRODropCircPanel(circs, num_circs, top);
+		JPanel ro = makeRODropCircPanel(circs, _nc, top);
 		s.gridx = 0;
 		s.gridy = 1;
 		s.gridwidth = 1;
@@ -572,35 +600,40 @@ class Kellogg_Cabinet extends JLayeredPane
 		_no_listen_h = 0;
 		_listening = 0;
 
-		_nc = 2;
 		_nc_t = new JTextField();
 		_nc_t.setPreferredSize(new Dimension(30,20));
 		_nc_f = new JPanel();
 		_nc_f.add(new JLabel("Num Circuits:"));
 		_nc_f.add(_nc_t);
 
-		_nl = 5;
 		_nl_t = new JTextField();
 		_nl_t.setPreferredSize(new Dimension(30,20));
 		_nl_f = new JPanel();
 		_nl_f.add(new JLabel("Num Lines:"));
 		_nl_f.add(_nl_t);
 
-		_na = false;
+		_na = Boolean.valueOf(_prop.getProperty("switchboard_night_alarm"));
 		_na_t = new Checkbox();
 		_na_f = new JPanel();
 		_na_f.add(new JLabel("Night Alarm"));
 		_na_f.add(_na_t);
 
-		_tc = false;
+		_tc = Boolean.valueOf(_prop.getProperty("switchboard_toll_line"));
 		_tc_t = new Checkbox();
 		_tc_f = new JPanel();
 		_tc_f.add(new JLabel("Toll Line"));
 		_tc_f.add(_tc_t);
 
+		String h = _prop.getProperty("switchboard_host");
+		_host = null;
 		try {
-			_host = InetAddress.getLocalHost();
-		} catch(IOException e) {
+			if (h == null || h.length() == 0 || h.equals("localhost")) {
+				_host = InetAddress.getLocalHost();
+			} else {
+				_host = InetAddress.getByName(h);
+			}
+		} catch(Exception e) {
+			switchboard.warning("Get Host", e.getMessage());
 		}
 		_host_t = new JTextField();
 		_host_t.setPreferredSize(new Dimension(150,20));
@@ -608,7 +641,7 @@ class Kellogg_Cabinet extends JLayeredPane
 		_host_f.add(new JLabel("Host:"));
 		_host_f.add(_host_t);
 
-		_port = 31100;
+		_port = Integer.valueOf(_prop.getProperty("switchboard_port"));
 		_port_t = new JTextField();
 		_port_t.setPreferredSize(new Dimension(50,20));
 		_port_f = new JPanel();
@@ -617,7 +650,8 @@ class Kellogg_Cabinet extends JLayeredPane
 
 		try {
 			_ss = new ServerSocket(_port, 1, _host);
-		} catch(IOException e) {
+		} catch(Exception e) {
+			switchboard.fatal("ServerSocket", e.getMessage());
 		}
 		Thread t = new Thread(this);
 		t.start();
@@ -924,8 +958,13 @@ class Kellogg_Cabinet extends JLayeredPane
 			}
 			_tc = _tc_t.getState();
 			InetAddress h;
+			String hs = _host_t.getText();
 			try {
-				h = InetAddress.getByName(_host_t.getText());
+				if (hs == null || hs.length() == 0 || hs.equals("localhost")) {
+					h = InetAddress.getLocalHost();
+				} else {
+					h = InetAddress.getByName(hs);
+				}
 			} catch (IOException ee) {
 				h = null;
 			}
@@ -933,6 +972,13 @@ class Kellogg_Cabinet extends JLayeredPane
 			try {
 				_port = Integer.valueOf(_port_t.getText());
 			} catch (NumberFormatException ee) { }
+			_prop.setProperty("switchboard_lines", Integer.toString(_nl));
+			_prop.setProperty("switchboard_circuits", Integer.toString(_nc));
+			_prop.setProperty("switchboard_night_alarm", Boolean.toString(_na));
+			_prop.setProperty("switchboard_toll_line", Boolean.toString(_tc));
+			_prop.setProperty("switchboard_host", _host.getHostName());
+			_prop.setProperty("switchboard_port", Integer.toString(_port));
+			_prop.save();
 			return;
 		}
 	}
@@ -1063,7 +1109,7 @@ class Kellogg_Magneto extends JPanel
 class Kellogg_Drop extends JPanel
 	implements MouseListener
 {
-	final String ident = "$Id: switchboard.java,v 1.39 2012/02/18 02:36:20 drmiller Exp $";
+	final String ident = "$Id: switchboard.java,v 1.40 2012/02/18 16:21:20 drmiller Exp $";
 	static final long serialVersionUID = 311000000003L;
 	public static final int obj_width = 60;
 	public static final int obj_height = 60;
@@ -1172,7 +1218,7 @@ class Kellogg_Drop extends JPanel
 class Kellogg_Line extends JPanel
 	implements MouseListener, Runnable
 {
-	final String ident = "$Id: switchboard.java,v 1.39 2012/02/18 02:36:20 drmiller Exp $";
+	final String ident = "$Id: switchboard.java,v 1.40 2012/02/18 16:21:20 drmiller Exp $";
 	static final long serialVersionUID = 311000000002L;
 	public static final int obj_width = 60;
 	public static final int obj_height = 40;
@@ -1344,7 +1390,7 @@ class Kellogg_Line extends JPanel
 
 class Kellogg_LineWithDrop extends JPanel
 {
-	final String ident = "$Id: switchboard.java,v 1.39 2012/02/18 02:36:20 drmiller Exp $";
+	final String ident = "$Id: switchboard.java,v 1.40 2012/02/18 16:21:20 drmiller Exp $";
 	static final long serialVersionUID = 311000000004L;
 	public static final int obj_width = 60;
 	public static final int obj_height =
@@ -1406,7 +1452,7 @@ class Kellogg_LineWithDrop extends JPanel
 class Kellogg_Plug extends JPanel
 	implements MouseListener
 {
-	final String ident = "$Id: switchboard.java,v 1.39 2012/02/18 02:36:20 drmiller Exp $";
+	final String ident = "$Id: switchboard.java,v 1.40 2012/02/18 16:21:20 drmiller Exp $";
 	static final long serialVersionUID = 311000000005L;
 	public static final int obj_width = 75;
 	public static final int obj_height = 55;
@@ -1531,7 +1577,7 @@ class Kellogg_Plug extends JPanel
 class Kellogg_RingSw extends JPanel
 	implements MouseListener, KeyListener
 {
-	final String ident = "$Id: switchboard.java,v 1.39 2012/02/18 02:36:20 drmiller Exp $";
+	final String ident = "$Id: switchboard.java,v 1.40 2012/02/18 16:21:20 drmiller Exp $";
 	static final long serialVersionUID = 311000000007L;
 	public static final int obj_width = 75;
 	public static final int obj_height = 66;
@@ -1646,7 +1692,7 @@ class Kellogg_RingSw extends JPanel
 class Kellogg_ListenSw extends JPanel
 	implements MouseListener
 {
-	final String ident = "$Id: switchboard.java,v 1.39 2012/02/18 02:36:20 drmiller Exp $";
+	final String ident = "$Id: switchboard.java,v 1.40 2012/02/18 16:21:20 drmiller Exp $";
 	static final long serialVersionUID = 311000000006L;
 	public static final int obj_width = 75;
 	public static final int obj_height = 64;
@@ -1712,7 +1758,7 @@ class Kellogg_ListenSw extends JPanel
 
 class Kellogg_Circuit extends JPanel
 {
-	final String ident = "$Id: switchboard.java,v 1.39 2012/02/18 02:36:20 drmiller Exp $";
+	final String ident = "$Id: switchboard.java,v 1.40 2012/02/18 16:21:20 drmiller Exp $";
 	static final long serialVersionUID = 311000000008L;
 	public static final int obj_width = 75;
 	public static final int obj_height = 10 + 10 +
@@ -1732,7 +1778,7 @@ class Kellogg_Circuit extends JPanel
 	// R.O.Drop  [upper](originator attn signal)
 	// R.O.Drop  [lower](target attn signal)
 	// Answer    [far]  (operator answers originator)
- 	// Call      [near] (operator calls target)
+	// Call      [near] (operator calls target)
 	// Ring-back [push] (operator rings originator)
 	// Ring      [pull] (operator rings target)
 	// Listen    [push] (operator taps-in to circuit)

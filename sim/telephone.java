@@ -1,5 +1,5 @@
 // Copyright (c) 2011,2012 Douglas Miller
-// $Id: telephone.java,v 1.14 2012/02/18 15:08:39 drmiller Exp $
+// $Id: telephone.java,v 1.15 2012/02/18 16:21:20 drmiller Exp $
 
 import java.awt.*;
 import javax.swing.*;
@@ -12,10 +12,11 @@ import javax.swing.text.Caret;
 import javax.sound.sampled.*;
 import java.awt.Desktop;
 import javax.swing.event.*;
+import java.util.Properties;
 
 public class telephone
 {
-	final String ident = "$Id: telephone.java,v 1.14 2012/02/18 15:08:39 drmiller Exp $";
+	final String ident = "$Id: telephone.java,v 1.15 2012/02/18 16:21:20 drmiller Exp $";
 
 	static final Color cabinet = new Color(165, 125, 14);
 	static final Color cabinet_lt = new Color(185, 145, 34);
@@ -59,18 +60,21 @@ public class telephone
 
 	static final Font font = new Font("Serif", Font.PLAIN, 18);
 	static final Font font2 = new Font("Serif", Font.PLAIN, 12);
+	static JFrame front_end;
 
 	public static void main(String[] args) {
 
-		JFrame front_end = new JFrame("Stromberg-Carlson 1915 Telephone");
+		front_end = new JFrame("Stromberg-Carlson 1915 Telephone");
 		//java.net.URL url = w600_fe.class.getResource("icons/wang600-48x48.png");
 		//Image img = Toolkit.getDefaultToolkit().getImage(url);
 		//front_end.setIconImage(img);
 
+		StrombergCarlson_Properties prop = new StrombergCarlson_Properties();
+
 		StrombergCarlson_Help help = new StrombergCarlson_Help(front_end);
 
 		StrombergCarlson_Cabinet cab = new StrombergCarlson_Cabinet(
-						front_end, help);
+						front_end, prop, help);
 
 		JMenuBar mb = new JMenuBar();
 		JMenu mu;
@@ -101,6 +105,50 @@ public class telephone
 		front_end.setSize(1024,640);
 		front_end.pack();
 		front_end.setVisible(true);
+	}
+
+	static public void fatal(String op, String err) {
+		JOptionPane.showMessageDialog(front_end,
+			new JLabel(err),
+			op + " Error", JOptionPane.ERROR_MESSAGE);
+		System.exit(1);
+	}
+
+	static public void warning(String op, String err) {
+		JOptionPane.showMessageDialog(front_end,
+			new JLabel(err),
+			op + " Warning", JOptionPane.WARNING_MESSAGE);
+	}
+}
+
+class StrombergCarlson_Properties extends Properties
+{
+	static final long serialVersionUID = 311000000014L;
+	private String _cfg;
+
+	public StrombergCarlson_Properties() {
+		_cfg = System.getProperty("user.home") + "/.tele-sb-sim.rc";
+		try {
+			FileInputStream cfg = new FileInputStream(_cfg);
+			load(cfg);
+			cfg.close();
+		} catch (Exception e) {
+			//telephone.warning("Load Setup", e.getMessage());
+			// set defaults
+			setProperty("switchboard_host", "localhost");
+			setProperty("switchboard_port", "31100");
+			// save, and force existence of file?
+		}
+	}
+
+	public void save() {
+		try {
+			FileOutputStream cfg = new FileOutputStream(_cfg);
+			store(cfg, "Saved by telephone");
+			cfg.close();
+		} catch (Exception e) {
+			telephone.warning("Save Setup", e.getMessage());
+		}
 	}
 }
  
@@ -182,7 +230,7 @@ class StrombergCarlson_Help extends JComponent
 		JLabel lab = new JLabel("<HTML><CENTER>"+
 				"Stromberg-Carlson 1915 Magneto Telephone<BR>" +
 				"Simulator<BR>" +
-				"$Revision: 1.14 $ $Date: 2012/02/18 15:08:39 $<BR>" +
+				"$Revision: 1.15 $ $Date: 2012/02/18 16:21:20 $<BR>" +
 				"<BR>" +
 				"<IMG SRC=\""+url.toString()+"\">" +
 				"<BR>" +
@@ -324,6 +372,7 @@ class StrombergCarlson_Cabinet extends JPanel
 	private int _on_hook_h;
 
 	private StrombergCarlson_Help _help;
+	private StrombergCarlson_Properties _prop;
 
 	private JTextField _host_t;
 	private JPanel _host_f;
@@ -332,10 +381,12 @@ class StrombergCarlson_Cabinet extends JPanel
 	private JPanel _port_f;
 	private int _port;
 
-	public StrombergCarlson_Cabinet(Component top, StrombergCarlson_Help help) {
+	public StrombergCarlson_Cabinet(Component top, StrombergCarlson_Properties prop,
+							StrombergCarlson_Help help) {
 		font_metrics = top.getFontMetrics(telephone.font);
 		_top = top;
 		_help = help;
+		_prop = prop;
 		_s = null;
 
 		GridBagLayout gridbag = new GridBagLayout();
@@ -524,9 +575,16 @@ class StrombergCarlson_Cabinet extends JPanel
 		gridbag.setConstraints(_scroll, s);
 		add(_scroll);
  
+		String h = _prop.getProperty("switchboard_host");
+		_host = null;
 		try {
-			_host = InetAddress.getLocalHost();
+			if (h == null || h.length() == 0 || h.equals("localhost")) {
+				_host = InetAddress.getLocalHost();
+			} else {
+				_host = InetAddress.getByName(h);
+			}
 		} catch(IOException e) {
+			telephone.warning("Get Host", e.getMessage());
 		}
 		_host_t = new JTextField();
 		_host_t.setPreferredSize(new Dimension(150,20));
@@ -534,7 +592,7 @@ class StrombergCarlson_Cabinet extends JPanel
 		_host_f.add(new JLabel("Host:"));
 		_host_f.add(_host_t);
 
-		_port = 31100;
+		_port = Integer.valueOf(_prop.getProperty("switchboard_port"));;
 		_port_t = new JTextField();
 		_port_t.setPreferredSize(new Dimension(50,20));
 		_port_f = new JPanel();
@@ -573,8 +631,13 @@ class StrombergCarlson_Cabinet extends JPanel
 			}
 			// TBD: change parameters and restart?
 			InetAddress h;
+			String hs = _host_t.getText();
 			try {
-				h = InetAddress.getByName(_host_t.getText());
+				if (hs == null || hs.length() == 0 || hs.equals("localhost")) {
+					h = InetAddress.getLocalHost();
+				} else {
+					h = InetAddress.getByName(hs);
+				}
 			} catch (IOException ee) {
 				h = null;
 			}
@@ -582,6 +645,9 @@ class StrombergCarlson_Cabinet extends JPanel
 			try {
 				_port = Integer.valueOf(_port_t.getText());
 			} catch (NumberFormatException ee) { }
+			_prop.setProperty("switchboard_host", _host.getHostName());
+			_prop.setProperty("switchboard_port", Integer.toString(_port));
+			_prop.save();
 			return;
 		}
 	}
