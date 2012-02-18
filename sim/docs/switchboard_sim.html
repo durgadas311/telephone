@@ -1,5 +1,5 @@
 <HTML>
-<!-- $Id: switchboard_sim.html,v 1.4 2012/02/18 20:48:58 drmiller Exp $ -->
+<!-- $Id: switchboard_sim.html,v 1.5 2012/02/18 21:01:14 drmiller Exp $ -->
 
 <H2>Operating the Simulator</H2>
 
@@ -97,6 +97,40 @@ will record the text in the lower window. Pressing ENTER will send the
 text to the subscriber(s). Click the Listen switch again to turn off.
 </DL>
 
+<P>The menu item "Directory", under the "System" menu, may be used to display
+the directory of current subscribers.
+
+<H4>Switchboard Setup</H4>
+
+<P>The menu item "Setup", under the "System" menu, may be used to
+configure the switchboard. Changing the settings requires that
+the switchboard program be restarted.
+
+<P>Settings include:
+
+<DL>
+<DT><B>Num Lines</B>
+<DD>The number of subscriber lines supported.
+Minimum is 5, or a multiple of 10.
+<DT><B>Num Circuits</B>
+<DD>The number of circuits supported. Maximum is 8.
+The default, if set to 0 or blank, is 40% of the number of lines.
+<DT><B>Night Alarm</B>
+<DD>Enabling the night alarm uses one circuit position,
+and allows for audible alarms when subscribers ring.
+<DT><B>Toll Line</B>
+<DD>Enabling the toll line uses 3 subscriber line positions,
+and implements the toll line connections between multiple switchboards.
+<DT><B>Host</B>
+<DD>This selects the hostname of this switchboard.
+Telephones must use the same hostname and port number in order to function with this
+switchboard.
+<DT><B>Port</B>
+<DD>This selects the port number of this switchboard.
+Telephones must use the same hostname and port number in order to function with this
+switchboard.
+</DL>
+
 <H3>Telephone Sets</H3>
 
 <IMG SRC="telephone.png">
@@ -134,6 +168,25 @@ in the same window, prefixed with the other party's line number.
 inform the operator that the circuit may be re-used.
 If no further assistance is required, you may also hang-up by clicking
 on the receiver.
+</DL>
+
+<P>When there is no switchboard available to the telephone, the
+telephone "number plate" will show the message "waiting".
+Once the telephone is installed to a switchboard,
+the number plate will show the line number on the switchboard
+associated with this telephone.
+
+<P>Settings include:
+
+<DL>
+<DT><B>Host</B>
+<DD>This selects the hostname of the switchboard.
+Telephones will be subscribed to the switchboard using the
+indicated hostname and port number.
+<DT><B>Port</B>
+<DD>This selects the port number of the switchboard.
+Telephones will be subscribed to the switchboard using the
+indicated hostname and port number.
 </DL>
 
 </HTML>
