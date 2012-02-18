@@ -1,0 +1,16 @@
+#!/bin/sh
+# $Id: UNINSTALL,v 1.1 2012/02/18 23:30:51 drmiller Exp $
+
+export INSTALLPATH="${HOME}/tele-sb-sim"
+
+# path might have blanks!!!
+cd ${HOME}
+echo "Removing ${INSTALLPATH}..."
+rm -rf "${INSTALLPATH}"
+
+for title in Switchboard Telephone; do
+	if [[ -f "${HOME}/Desktop/${title}.desktop" ]]; then
+		echo "Removing GNOME desktop ${title} shortcut..."
+		rm -f "${HOME}/Desktop/${title}.desktop"
+	fi
+done

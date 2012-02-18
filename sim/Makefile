@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.15 2012/02/18 23:15:24 drmiller Exp $
+# $Id: Makefile,v 1.16 2012/02/18 23:30:51 drmiller Exp $
 
 INSNAME = tele-sb-sim
 INSDIR = ~
@@ -54,12 +54,12 @@ www: _FRC_
 
 temp_dest: all jars
 	mkdir -p $(TMPDEST)
-	cp *.jar run-* INSTALL *.tmplt $(TMPDEST)
-	chmod +x $(TMPDEST)/run-* $(TMPDEST)/INSTALL
+	cp *.jar run-* INSTALL UNINSTALL *.desktop.tmplt $(TMPDEST)
+	chmod +x $(TMPDEST)/run-* $(TMPDEST)/INSTALL $(TMPDEST)/UNINSTALL
 	mkdir -p $(TMPDEST)/icons
-	cp icons/*-*x*.png icons/*-*x*.icns $(TMPDEST)/icons
+	cp icons/*-*x*.png $(TMPDEST)/icons
 
-temp_app: all jars
+temp_app: all icns jars
 	for p in Switchboard Telephone; do \
 		jar=$${p#T}; jar=$${jar#S}; \
 		mkdir -p $(TMPDEST)/$${p}.app/Contents/{Resources,MacOS}; \
@@ -69,13 +69,6 @@ temp_app: all jars
 		chmod +x $(TMPDEST)/$${p}.app/Contents/MacOS/run-$${p}; \
 		cp $${p}.plist.tmplt $(TMPDEST)/$${p}.app/Contents/Info.plist; \
 	done
-
-wtemp_dest: all winicons jars
-	mkdir -p $(TMPDEST)
-	cp *.jar *.bat INSTALL.BAT $(TMPDEST)
-	cp README.windows $(TMPDEST)/README.txt
-	mkdir -p $(TMPDEST)/icons
-	cp icons/*-*x*.ico $(TMPDEST)/icons
 
 tele-sb-sim.tgz: temp_dest
 	tar -czvf tele-sb-sim.tgz -C $(TMPDIR) $(INSNAME)

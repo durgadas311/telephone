@@ -1,5 +1,5 @@
 #!/bin/sh
-# $Id: INSTALL,v 1.7 2012/02/17 21:31:44 drmiller Exp $
+# $Id: INSTALL,v 1.8 2012/02/18 23:30:51 drmiller Exp $
 
 export INSTALLPATH=${HOME}/tele-sb-sim
 
@@ -26,20 +26,6 @@ for title in Switchboard Telephone; do
 			eval "echo \"${line}\""
 		done >~/Desktop/${title}.desktop
 		if [[ $? -ne 0 ]]; then ((e+=1)); fi
-# OSX done differently...
-#	elif [[ -f ~/.CFUserTextEncoding && -d ~/Desktop ]]; then
-#		echo "installing OSX desktop ${title} shortcut..."
-#		rm -rf ~/Desktop/${title}.app
-#		mkdir -p ~/Desktop/${title}.app/Contents/{Resources,MacOS}
-#		if [[ $? -ne 0 ]]; then ((e+=1)); fi
-#		cat ${title}.plist.tmplt | while read line; do
-#			eval "echo \"${line}\""
-#		done >~/Desktop/${title}.app/Contents/Info.plist
-#		if [[ $? -ne 0 ]]; then ((e+=1)); fi
-#		ln -s ${PWD}/run-${title} ~/Desktop/${title}.app/Contents/MacOS/
-#		if [[ $? -ne 0 ]]; then ((e+=1)); fi
-#		cp icons/${title}-*x*.icns ~/Desktop/${title}.app/Contents/Resources/
-#		if [[ $? -ne 0 ]]; then ((e+=1)); fi
 	fi
 done
 if [[ ${e} -gt 0 ]]; then
