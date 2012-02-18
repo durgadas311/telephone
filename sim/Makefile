@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.16 2012/02/18 23:30:51 drmiller Exp $
+# $Id: Makefile,v 1.17 2012/02/18 23:40:15 drmiller Exp $
 
 INSNAME = tele-sb-sim
 INSDIR = ~
@@ -68,6 +68,8 @@ temp_app: all icns jars
 		cp run-$${p} $(TMPDEST)/$${p}.app/Contents/MacOS; \
 		chmod +x $(TMPDEST)/$${p}.app/Contents/MacOS/run-$${p}; \
 		cp $${p}.plist.tmplt $(TMPDEST)/$${p}.app/Contents/Info.plist; \
+		cp Uninstall-tele-sb-sim.sh $(TMPDEST)/Uninstall-tele-sb-sim.sh; \
+		chmod +x $(TMPDEST)/Uninstall-tele-sb-sim.sh; \
 	done
 
 tele-sb-sim.tgz: temp_dest
