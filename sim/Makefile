@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.17 2012/02/18 23:40:15 drmiller Exp $
+# $Id: Makefile,v 1.18 2012/02/19 22:17:02 drmiller Exp $
 
 INSNAME = tele-sb-sim
 INSDIR = ~
@@ -59,28 +59,31 @@ temp_dest: all jars
 	mkdir -p $(TMPDEST)/icons
 	cp icons/*-*x*.png $(TMPDEST)/icons
 
-temp_app: all icns jars
-	for p in Switchboard Telephone; do \
-		jar=$${p#T}; jar=$${jar#S}; \
-		mkdir -p $(TMPDEST)/$${p}.app/Contents/{Resources,MacOS}; \
-		cp *$${jar}.jar $(TMPDEST)/$${p}.app/Contents/MacOS; \
-		cp icons/$${p}-*x*.icns $(TMPDEST)/$${p}.app/Contents/Resources/; \
-		cp run-$${p} $(TMPDEST)/$${p}.app/Contents/MacOS; \
-		chmod +x $(TMPDEST)/$${p}.app/Contents/MacOS/run-$${p}; \
-		cp $${p}.plist.tmplt $(TMPDEST)/$${p}.app/Contents/Info.plist; \
-		cp Uninstall-tele-sb-sim.sh $(TMPDEST)/Uninstall-tele-sb-sim.sh; \
-		chmod +x $(TMPDEST)/Uninstall-tele-sb-sim.sh; \
-	done
-
 tele-sb-sim.tgz: temp_dest
 	tar -czvf tele-sb-sim.tgz -C $(TMPDIR) $(INSNAME)
 	rm -rf $(TMPDIR)
 
-tele-sb-sim.dmg: temp_app
-	cd $(TMPDEST); genisoimage -r -apple -no-desktop \
-		-V "TELE-SB-SIM" -hfs-volid "TELE-SB-SIM" \
-		-o ../../tele-sb-sim.dmg .
-	rm -rf $(TMPDIR)
+tele-sb-sim.dmg: all icns jars
+	rm -f $@
+	dd if=/dev/zero of=$@ bs=64k count=16
+	hformat -l TELE-SB-SIM $@
+	hmount $@
+	for p in Switchboard Telephone; do \
+		jar=$${p#T}; jar=$${jar#S}; \
+		hmkdir $${p}.app; \
+		hcd $${p}.app; \
+		hmkdir Contents; \
+		hcd Contents; \
+		hcopy -r $${p}.plist.tmplt :Info.plist; \
+		hmkdir Resources MacOS; \
+		hcopy -r *$${jar}.jar :MacOS; \
+		hcopy -r run-$${p} :MacOS; \
+		hcopy -r icons/$${p}-*x*.icns :Resources; \
+		hcd; \
+	done
+	hcopy -r Uninstall-tele-sb-sim.sh :Uninstall-tele-sb-sim
+	hcopy -r README.osx :README.html
+	humount $@
 
 tele-sb-sim.exe: all winicons jars tele-sb-sim.nsi
 	makensis tele-sb-sim.nsi
