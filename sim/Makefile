@@ -1,4 +1,6 @@
-# $Id: Makefile,v 1.18 2012/02/19 22:17:02 drmiller Exp $
+# $Id: Makefile,v 1.19 2012/02/19 22:45:46 drmiller Exp $
+
+include Makefile.ship
 
 INSNAME = tele-sb-sim
 INSDIR = ~
@@ -11,41 +13,29 @@ PNGS := $(filter %32x32.png %48x48.png %128x128.png, $(PNGS))
 ICNS = $(subst .png,.icns,$(PNGS))
 WICONS = $(subst .png,.ico,$(PNGS))
 
-MANIFESTS = sb_manifest.txt t_manifest.txt
-JARS = switchboard.jar telephone.jar
-PACKAGES = tele-sb-sim.tgz tele-sb-sim.exe tele-sb-sim.dmg
-
-all: switchboard.class telephone.class
-
-clean:
+PACKAGES = $(INSNAME).tgz $(INSNAME).exe $(INSNAME).dmg
+SRCTAR = $(INSNAME)-src.tgz
 
 clobber: clean
 	rm -f *.class $(JARS) $(PACKAGES) $(MANIFESTS)
 
-switchboard.class: switchboard.java
-	javac switchboard.java
-
-telephone.class: telephone.java
-	javac telephone.java
-
-jars: $(JARS)
-
 packages: $(PACKAGES)
 
-switchboard.jar: switchboard.class sb_manifest.txt
-	jar cfm $@ sb_manifest.txt switchboard.class Kellogg*.class \
-		docs/*.html docs/*.png icons/*.png sounds/*.wav
+temp_src:
+	mkdir -p $(TMPDEST)
+	cp *.java README LICENSE $(TMPDEST)
+	cp Makefile.ship $(TMPDEST)/Makefile
+	mkdir -p $(TMPDEST)/{icons,docs,sounds}
+	cp icons/*.{png,ico,icns} $(TMPDEST)/icons
+	cp docs/*.{html,png} $(TMPDEST)/docs
+	cp sounds/*.wav $(TMPDEST)/sounds
 
-sb_manifest.txt:
-	echo "Main-Class: switchboard" >$@
+ship: tar packages
+	mv $(SRCTAR) $(PACKAGES) /http/durgadas.com/sebhc/tele-sb-sim
 
-telephone.jar: telephone.class t_manifest.txt
-	jar cfm $@ t_manifest.txt telephone.class StrombergCarlson*.class \
-		docs/*.html docs/*.png icons/*.png sounds/*.wav
-
-t_manifest.txt:
-	echo "Main-Class: telephone" >$@
-
+tar: temp_src
+	tar -czvf $(SRCTAR) -C ${TMPDIR} $(INSNAME)
+	rm -rf $(TMPDEST)
 
 www: _FRC_
 	mkdir -p /http/durgadas.com/sims/tele-sb-sim/docs
@@ -59,11 +49,11 @@ temp_dest: all jars
 	mkdir -p $(TMPDEST)/icons
 	cp icons/*-*x*.png $(TMPDEST)/icons
 
-tele-sb-sim.tgz: temp_dest
-	tar -czvf tele-sb-sim.tgz -C $(TMPDIR) $(INSNAME)
+$(INSNAME).tgz: temp_dest
+	tar -czvf $(INSNAME).tgz -C $(TMPDIR) $(INSNAME)
 	rm -rf $(TMPDIR)
 
-tele-sb-sim.dmg: all icns jars
+$(INSNAME).dmg: all icns jars
 	rm -f $@
 	dd if=/dev/zero of=$@ bs=64k count=16
 	hformat -l TELE-SB-SIM $@
@@ -81,12 +71,12 @@ tele-sb-sim.dmg: all icns jars
 		hcopy -r icons/$${p}-*x*.icns :Resources; \
 		hcd; \
 	done
-	hcopy -r Uninstall-tele-sb-sim.sh :Uninstall-tele-sb-sim
+	hcopy -r Uninstall-$(INSNAME).sh :Uninstall-$(INSNAME)
 	hcopy -r README.osx :README.html
 	humount $@
 
-tele-sb-sim.exe: all winicons jars tele-sb-sim.nsi
-	makensis tele-sb-sim.nsi
+$(INSNAME).exe: all winicons jars $(INSNAME).nsi
+	makensis $(INSNAME).nsi
 
 install: temp_dest
 	rm -rf $(INSDEST)
