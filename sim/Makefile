@@ -1,4 +1,4 @@
-# $Id: Makefile,v 1.19 2012/02/19 22:45:46 drmiller Exp $
+# $Id: Makefile,v 1.20 2012/02/19 22:55:04 drmiller Exp $
 
 include Makefile.ship
 
@@ -31,7 +31,7 @@ temp_src:
 	cp sounds/*.wav $(TMPDEST)/sounds
 
 ship: tar packages
-	mv $(SRCTAR) $(PACKAGES) /http/durgadas.com/sebhc/tele-sb-sim
+	mv -v $(SRCTAR) $(PACKAGES) /http/durgadas.com/sebhc/tele-sb-sim
 
 tar: temp_src
 	tar -czvf $(SRCTAR) -C ${TMPDIR} $(INSNAME)
