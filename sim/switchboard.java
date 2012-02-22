@@ -1,5 +1,5 @@
 // Copyright (c) 2011,2012 Douglas Miller
-// $Id: switchboard.java,v 1.41 2012/02/18 17:05:36 drmiller Exp $
+// $Id: switchboard.java,v 1.42 2012/02/22 22:08:09 drmiller Exp $
 
 import java.awt.*;
 import javax.swing.*;
@@ -10,13 +10,14 @@ import javax.swing.border.*;
 import java.net.*;
 import java.io.*;
 import javax.swing.text.Caret;
+import javax.sound.sampled.*;
 import java.awt.Desktop;
 import javax.swing.event.*;
 import java.util.Properties;
 
 public class switchboard
 {
-	final String ident = "$Id: switchboard.java,v 1.41 2012/02/18 17:05:36 drmiller Exp $";
+	final String ident = "$Id: switchboard.java,v 1.42 2012/02/22 22:08:09 drmiller Exp $";
 
 	static final Color cabinet = new Color(165, 125, 14);
 
@@ -232,7 +233,7 @@ class Kellogg_Help extends JComponent
 		JLabel lab = new JLabel("<HTML><CENTER>"+
 				"Kellogg 1915 Magneto Switchboard<BR>" +
 				"Simulator<BR>" +
-				"$Revision: 1.41 $ $Date: 2012/02/18 17:05:36 $<BR>" +
+				"$Revision: 1.42 $ $Date: 2012/02/22 22:08:09 $<BR>" +
 				"<BR>" +
 				"<IMG SRC=\""+url.toString()+"\">" +
 				"<BR>" +
@@ -366,6 +367,8 @@ class Kellogg_Cabinet extends JLayeredPane
 	private Kellogg_Line[] _lines;
 	private int _nlines;
 
+	private Kellogg_NightAlarm _night_alarm;
+
 	private int cab_width;
 	private ServerSocket _ss;
 
@@ -469,6 +472,8 @@ class Kellogg_Cabinet extends JLayeredPane
 		_prop = prop;
 		_nc = Integer.valueOf(_prop.getProperty("switchboard_circuits"));
 		_nl = Integer.valueOf(_prop.getProperty("switchboard_lines"));
+
+		_night_alarm = new Kellogg_NightAlarm();
 
 		_txt = new String();
 		_text = new JTextArea();
@@ -710,7 +715,7 @@ class Kellogg_Cabinet extends JLayeredPane
 		s.anchor = GridBagConstraints.WEST;
 		int x;
 		for (x = 0; x < num_circs; ++x) {
-			Kellogg_Drop drp1 = new Kellogg_Drop(x + 1,
+			Kellogg_Drop drp1 = new Kellogg_Drop(this, x + 1,
 						Kellogg_Circuit.obj_width);
 			s.gridx = x;
 			s.gridy = 0;
@@ -718,7 +723,7 @@ class Kellogg_Cabinet extends JLayeredPane
 			s.gridheight = 1;
 			pgb.setConstraints(drp1, s);
 			panel.add(drp1);
-			Kellogg_Drop drp2 = new Kellogg_Drop(x + 1,
+			Kellogg_Drop drp2 = new Kellogg_Drop(this, x + 1,
 						Kellogg_Circuit.obj_width);
 			s.gridx = x;
 			s.gridy = 1;
@@ -794,6 +799,15 @@ class Kellogg_Cabinet extends JLayeredPane
 				return;
 			}
 		}
+	}
+
+	public void alarmDrop(boolean coded, boolean on) {
+		_night_alarm.alarmDrop(coded, on);
+	}
+
+	// only called if Coded Drop...
+	public void alarmRing(boolean on) {
+		_night_alarm.alarmRing(on);
 	}
 
 	private void goListening(boolean on) {
@@ -1130,7 +1144,7 @@ class Kellogg_Magneto extends JPanel
 class Kellogg_Drop extends JPanel
 	implements MouseListener
 {
-	final String ident = "$Id: switchboard.java,v 1.41 2012/02/18 17:05:36 drmiller Exp $";
+	final String ident = "$Id: switchboard.java,v 1.42 2012/02/22 22:08:09 drmiller Exp $";
 	static final long serialVersionUID = 311000000003L;
 	public static final int obj_width = 60;
 	public static final int obj_height = 60;
@@ -1148,10 +1162,12 @@ class Kellogg_Drop extends JPanel
 	private String _tag;
 	private int _tag_x;
 	private boolean _dropped;
+	private boolean _coded;
 	private int[] _shutter_x;
 	private int[] _shutter_dn_x;
 	private int[] _label;
 	private int[] _label_dn_x;
+	private Kellogg_Cabinet _cab;
 
 	public void paint(Graphics g) {
 		super.paint(g);
@@ -1183,8 +1199,10 @@ class Kellogg_Drop extends JPanel
 		}
 	}
 
-	public Kellogg_Drop(int num, int width) {
+	public Kellogg_Drop(Kellogg_Cabinet cab, int num, int width) {
 		_num = num;
+		_cab = cab;
+		_coded = false;
 		_tag = Integer.toString(_num);
 		int w = Kellogg_Cabinet.font_metrics.stringWidth(_tag);
 		int off = (width / 2) - (60 / 2);
@@ -1224,10 +1242,15 @@ class Kellogg_Drop extends JPanel
 	public void mousePressed(MouseEvent e) { }
 	public void mouseReleased(MouseEvent e) { }
 
+	public void alarmRing(boolean on) {
+		if (_coded) _cab.alarmRing(on);
+	}
+
 	public void setDropped(boolean drop) {
 		if (drop != _dropped) {
 			_dropped = drop;
 			repaint();
+			_cab.alarmDrop(_coded, _dropped);
 		}
 	}
 
@@ -1239,7 +1262,7 @@ class Kellogg_Drop extends JPanel
 class Kellogg_Line extends JPanel
 	implements MouseListener, Runnable
 {
-	final String ident = "$Id: switchboard.java,v 1.41 2012/02/18 17:05:36 drmiller Exp $";
+	final String ident = "$Id: switchboard.java,v 1.42 2012/02/22 22:08:09 drmiller Exp $";
 	static final long serialVersionUID = 311000000002L;
 	public static final int obj_width = 60;
 	public static final int obj_height = 40;
@@ -1394,9 +1417,16 @@ class Kellogg_Line extends JPanel
 			String s = new String(_buf, 0, n);
 			if (s.equals("%RING\n")) {
 				if (_conn_plug != null) {
-					_conn_plug.ring();
+					_conn_plug.ring(true);
 				} else {
 					_drop.setDropped(true);
+					_drop.alarmRing(true);
+				}
+			} else if (s.equals("%RINGOFF\n")) {
+				if (_conn_plug != null) {
+					_conn_plug.ring(false);
+				} else {
+					_drop.alarmRing(false);
 				}
 			} else if (s.startsWith("%NAME=")) {
 				_name = s.substring(6);
@@ -1411,14 +1441,15 @@ class Kellogg_Line extends JPanel
 		} catch(IOException e) { }
 		_subscriber = null;
 		if (_conn_plug != null) {
-			_conn_plug.ring(); // trigger the drop...
+			_conn_plug.ring(true); // trigger the drop...
+			_conn_plug.ring(false);
 		}
 	}
 }
 
 class Kellogg_LineWithDrop extends JPanel
 {
-	final String ident = "$Id: switchboard.java,v 1.41 2012/02/18 17:05:36 drmiller Exp $";
+	final String ident = "$Id: switchboard.java,v 1.42 2012/02/22 22:08:09 drmiller Exp $";
 	static final long serialVersionUID = 311000000004L;
 	public static final int obj_width = 60;
 	public static final int obj_height =
@@ -1431,7 +1462,7 @@ class Kellogg_LineWithDrop extends JPanel
 	public Kellogg_LineWithDrop(JPanel parent, int num,
 			Kellogg_Cabinet cab) {
 		_parent = parent;
-		_drop = new Kellogg_Drop(num, 60);
+		_drop = new Kellogg_Drop(cab, num, 60);
 		_line = new Kellogg_Line(this, cab, num, _drop);
 
 		GridBagLayout gridbag = new GridBagLayout();
@@ -1480,7 +1511,7 @@ class Kellogg_LineWithDrop extends JPanel
 class Kellogg_Plug extends JPanel
 	implements MouseListener
 {
-	final String ident = "$Id: switchboard.java,v 1.41 2012/02/18 17:05:36 drmiller Exp $";
+	final String ident = "$Id: switchboard.java,v 1.42 2012/02/22 22:08:09 drmiller Exp $";
 	static final long serialVersionUID = 311000000005L;
 	public static final int obj_width = 75;
 	public static final int obj_height = 55;
@@ -1589,8 +1620,8 @@ class Kellogg_Plug extends JPanel
 		return (_circ.ringSw() == _ring_state);
 	}
 
-	public void ring() {
-		_co_drop.setDropped(true);
+	public void ring(boolean on) {
+		if (on) _co_drop.setDropped(true);
 	}
 
 	public void postUp(String s) {
@@ -1605,7 +1636,7 @@ class Kellogg_Plug extends JPanel
 class Kellogg_RingSw extends JPanel
 	implements MouseListener, KeyListener
 {
-	final String ident = "$Id: switchboard.java,v 1.41 2012/02/18 17:05:36 drmiller Exp $";
+	final String ident = "$Id: switchboard.java,v 1.42 2012/02/22 22:08:09 drmiller Exp $";
 	static final long serialVersionUID = 311000000007L;
 	public static final int obj_width = 75;
 	public static final int obj_height = 66;
@@ -1720,7 +1751,7 @@ class Kellogg_RingSw extends JPanel
 class Kellogg_ListenSw extends JPanel
 	implements MouseListener
 {
-	final String ident = "$Id: switchboard.java,v 1.41 2012/02/18 17:05:36 drmiller Exp $";
+	final String ident = "$Id: switchboard.java,v 1.42 2012/02/22 22:08:09 drmiller Exp $";
 	static final long serialVersionUID = 311000000006L;
 	public static final int obj_width = 75;
 	public static final int obj_height = 64;
@@ -1786,7 +1817,7 @@ class Kellogg_ListenSw extends JPanel
 
 class Kellogg_Circuit extends JPanel
 {
-	final String ident = "$Id: switchboard.java,v 1.41 2012/02/18 17:05:36 drmiller Exp $";
+	final String ident = "$Id: switchboard.java,v 1.42 2012/02/22 22:08:09 drmiller Exp $";
 	static final long serialVersionUID = 311000000008L;
 	public static final int obj_width = 75;
 	public static final int obj_height = 10 + 10 +
@@ -1911,5 +1942,85 @@ class Kellogg_Circuit extends JPanel
 	public void post(Kellogg_Plug plug, String s) {
 		if (plug == _call) _ans.postDown(s);
 		else if (plug == _ans) _call.postDown(s);
+	}
+}
+
+class Kellogg_NightAlarm extends JPanel
+{
+	final String ident = "$Id: switchboard.java,v 1.42 2012/02/22 22:08:09 drmiller Exp $";
+	static final long serialVersionUID = 311000000048L;
+	public static final int obj_width = 75;
+	public static final int obj_height = 100;
+
+	private int _alarming;
+	private boolean _alarm;
+	private boolean _alarm_on;
+	private boolean _alarm_const;
+	private Clip _ringer;
+
+	public void paint(Graphics g) {
+		super.paint(g);
+		String s = Integer.toString(_alarming);
+		g.drawString(s, 10, 90);
+		if (_alarm) {
+			g.setColor(Color.red);
+			g.fillOval(10, 10, 55, 55);
+		}
+	}
+
+	public Kellogg_NightAlarm() {
+		_alarming = 0;
+		_alarm = false;
+		_alarm_on = false;
+		_alarm_const = false;
+
+		// sometimes, this fails because of exclusive audio
+		// access. not sure how to share, but need to disable
+		// audio in that case.
+		try {
+			_ringer = AudioSystem.getClip();
+			AudioInputStream wav =
+				AudioSystem.getAudioInputStream(
+					telephone.class.getResourceAsStream(
+						"sounds/ring.wav"));
+			_ringer.open(wav);
+			_ringer.setLoopPoints(0, 4500);
+		} catch (Exception e) {
+			_ringer = null;
+		}
+	}
+
+	private void alarmer(boolean on) {
+		if (!_alarm_on) {
+			// should have been zeroed when turned off...
+			return;
+		}
+		if (on) {
+			if (_alarming == 0) {
+				_alarm = true;
+				_ringer.setFramePosition(0);
+				_ringer.loop(Clip.LOOP_CONTINUOUSLY);
+			}
+			++_alarming;
+		} else {
+			--_alarming;
+			if (_alarming == 0) {
+				_alarm = false;
+				_ringer.loop(0);
+			}
+		}
+		repaint(); // move later to "== 0" cases...
+	}
+
+	public void alarmDrop(boolean coded, boolean on) {
+		if (!coded || _alarm_const) {
+			alarmer(on);
+		}
+	}
+
+	public void alarmRing(boolean on) {
+		if (!_alarm_const) {
+			alarmer(on);
+		}
 	}
 }

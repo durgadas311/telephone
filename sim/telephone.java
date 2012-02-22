@@ -1,5 +1,5 @@
 // Copyright (c) 2011,2012 Douglas Miller
-// $Id: telephone.java,v 1.17 2012/02/18 21:32:11 drmiller Exp $
+// $Id: telephone.java,v 1.18 2012/02/22 22:08:09 drmiller Exp $
 
 import java.awt.*;
 import javax.swing.*;
@@ -16,7 +16,7 @@ import java.util.Properties;
 
 public class telephone
 {
-	final String ident = "$Id: telephone.java,v 1.17 2012/02/18 21:32:11 drmiller Exp $";
+	final String ident = "$Id: telephone.java,v 1.18 2012/02/22 22:08:09 drmiller Exp $";
 
 	static final Color cabinet = new Color(165, 125, 14);
 	static final Color cabinet_lt = new Color(185, 145, 34);
@@ -230,7 +230,7 @@ class StrombergCarlson_Help extends JComponent
 		JLabel lab = new JLabel("<HTML><CENTER>"+
 				"Stromberg-Carlson 1915 Magneto Telephone<BR>" +
 				"Simulator<BR>" +
-				"$Revision: 1.17 $ $Date: 2012/02/18 21:32:11 $<BR>" +
+				"$Revision: 1.18 $ $Date: 2012/02/22 22:08:09 $<BR>" +
 				"<BR>" +
 				"<IMG SRC=\""+url.toString()+"\">" +
 				"<BR>" +
@@ -667,9 +667,12 @@ class StrombergCarlson_Cabinet extends JPanel
 	public void keyReleased(KeyEvent e) { }
 
 	public void ring(boolean on) {
-		if (!on) return;
 		try {
-			_out.write("%RING\n".getBytes());
+			if (on) {
+				_out.write("%RING\n".getBytes());
+			} else {
+				_out.write("%RINGOFF\n".getBytes());
+			}
 		} catch (IOException ee) {
 		}
 		// _bell.ring(); // ring locally, too?
