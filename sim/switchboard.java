@@ -1,5 +1,5 @@
 // Copyright (c) 2011,2012 Douglas Miller
-// $Id: switchboard.java,v 1.43 2012/02/22 23:17:36 drmiller Exp $
+// $Id: switchboard.java,v 1.44 2012/02/24 23:47:06 drmiller Exp $
 
 import java.awt.*;
 import javax.swing.*;
@@ -17,7 +17,7 @@ import java.util.Properties;
 
 public class switchboard
 {
-	final String ident = "$Id: switchboard.java,v 1.43 2012/02/22 23:17:36 drmiller Exp $";
+	final String ident = "$Id: switchboard.java,v 1.44 2012/02/24 23:47:06 drmiller Exp $";
 
 	static final Color cabinet = new Color(165, 125, 14);
 
@@ -233,7 +233,7 @@ class Kellogg_Help extends JComponent
 		JLabel lab = new JLabel("<HTML><CENTER>"+
 				"Kellogg 1915 Magneto Switchboard<BR>" +
 				"Simulator<BR>" +
-				"$Revision: 1.43 $ $Date: 2012/02/22 23:17:36 $<BR>" +
+				"$Revision: 1.44 $ $Date: 2012/02/24 23:47:06 $<BR>" +
 				"<BR>" +
 				"<IMG SRC=\""+url.toString()+"\">" +
 				"<BR>" +
@@ -346,18 +346,23 @@ class Kellogg_Help extends JComponent
 	}
 }
 
+interface Kellogg_SwListener {
+	void listener(JComponent sw, boolean state);
+}
+
 class Kellogg_Cabinet extends JLayeredPane
-		implements Runnable, KeyListener, ActionListener
+		implements Runnable, KeyListener, ActionListener, Kellogg_SwListener
 {
 	static final long serialVersionUID = 311000000010L;
 
-	public static final int circs_per_cab = 8;
-	public static final int lines_per_row = 10;
 	public static final int border_size = 2;
 	public static final int text_height = 100;
 
 	public static FontMetrics font_metrics;
 	public static FontMetrics font2_metrics;
+
+	private int lines_per_row;
+	private int max_circs;
 
 	private Kellogg_Plug _sel_plug;
 
@@ -472,8 +477,14 @@ class Kellogg_Cabinet extends JLayeredPane
 		_prop = prop;
 		_nc = Integer.valueOf(_prop.getProperty("switchboard_circuits"));
 		_nl = Integer.valueOf(_prop.getProperty("switchboard_lines"));
+		_na = Boolean.valueOf(_prop.getProperty("switchboard_night_alarm"));
+		_tc = Boolean.valueOf(_prop.getProperty("switchboard_toll_line"));
 
-		_night_alarm = new Kellogg_NightAlarm();
+		if (_na) {
+			_night_alarm = new Kellogg_NightAlarm();
+		} else {
+			_night_alarm = null;
+		}
 
 		_txt = new String();
 		_text = new JTextArea();
@@ -494,12 +505,15 @@ class Kellogg_Cabinet extends JLayeredPane
 		_scroll.setFocusable(false);
 		_scroll.setVisible(false);
 
-		int n = lines_per_row;
-		if (_nl < lines_per_row) n = _nl;
-		cab_width = _nc * Kellogg_Circuit.obj_width;
-		if (cab_width < n * Kellogg_LineWithDrop.obj_width) {
-			cab_width = n * Kellogg_LineWithDrop.obj_width;
+		// migth want to allow "narrow switchboard" option...
+		if (_nl < 10) {
+			lines_per_row = 5;
+			max_circs = 4;
+		} else {
+			lines_per_row = 10;
+			max_circs = 8;
 		}
+		cab_width = max_circs * Kellogg_Circuit.obj_width;
 		int rows = (_nl + lines_per_row - 1) / lines_per_row;
 		_sel_plug = null;
 		_conn_plugs = new Kellogg_Plug[_nc * 2];
@@ -619,13 +633,11 @@ class Kellogg_Cabinet extends JLayeredPane
 		_nl_f.add(new JLabel("Num Lines:"));
 		_nl_f.add(_nl_t);
 
-		_na = Boolean.valueOf(_prop.getProperty("switchboard_night_alarm"));
 		_na_t = new Checkbox();
 		_na_f = new JPanel();
 		_na_f.add(new JLabel("Night Alarm"));
 		_na_f.add(_na_t);
 
-		_tc = Boolean.valueOf(_prop.getProperty("switchboard_toll_line"));
 		_tc_t = new Checkbox();
 		_tc_f = new JPanel();
 		_tc_f.add(new JLabel("Toll Line"));
@@ -741,10 +753,24 @@ class Kellogg_Cabinet extends JLayeredPane
 			cgb.setConstraints(cir, s);
 			circs.add(cir);
 		}
-		JPanel pan = new JPanel();
-		pan.setPreferredSize(new Dimension(
+		Dimension gap;
+		if (_night_alarm != null) {
+			gap = new Dimension(
+				cab_width - (num_circs + 1) * Kellogg_Circuit.obj_width,
+				Kellogg_Circuit.obj_height);
+			s.gridx = max_circs - 1;
+			s.gridy = 0;
+			s.gridwidth = 1;
+			s.gridheight = 1;
+			cgb.setConstraints(_night_alarm, s);
+			circs.add(_night_alarm);
+		} else {
+			gap = new Dimension(
 				cab_width - num_circs * Kellogg_Circuit.obj_width,
-				Kellogg_Circuit.obj_height));
+				Kellogg_Circuit.obj_height);
+		}
+		JPanel pan = new JPanel();
+		pan.setPreferredSize(gap);
 		pan.setOpaque(false);
 		s.gridx = x;
 		s.gridy = 0;
@@ -802,12 +828,12 @@ class Kellogg_Cabinet extends JLayeredPane
 	}
 
 	public void alarmDrop(boolean coded, boolean on) {
-		_night_alarm.alarmDrop(coded, on);
+		if (_night_alarm != null) _night_alarm.alarmDrop(coded, on);
 	}
 
 	// only called if Coded Drop...
 	public void alarmRing(boolean on) {
-		_night_alarm.alarmRing(on);
+		if (_night_alarm != null) _night_alarm.alarmRing(on);
 	}
 
 	private void goListening(boolean on) {
@@ -827,7 +853,7 @@ class Kellogg_Cabinet extends JLayeredPane
 		repaint();
 	}
 
-	public void listener(boolean on) {
+	public void listener(JComponent sw, boolean on) {
 		if (on) {
 			if (_listening == 0) goListening(true);
 			++_listening;
@@ -1144,7 +1170,7 @@ class Kellogg_Magneto extends JPanel
 class Kellogg_Drop extends JPanel
 	implements MouseListener
 {
-	final String ident = "$Id: switchboard.java,v 1.43 2012/02/22 23:17:36 drmiller Exp $";
+	final String ident = "$Id: switchboard.java,v 1.44 2012/02/24 23:47:06 drmiller Exp $";
 	static final long serialVersionUID = 311000000003L;
 	public static final int obj_width = 60;
 	public static final int obj_height = 60;
@@ -1263,7 +1289,7 @@ class Kellogg_Drop extends JPanel
 class Kellogg_Line extends JPanel
 	implements MouseListener, Runnable
 {
-	final String ident = "$Id: switchboard.java,v 1.43 2012/02/22 23:17:36 drmiller Exp $";
+	final String ident = "$Id: switchboard.java,v 1.44 2012/02/24 23:47:06 drmiller Exp $";
 	static final long serialVersionUID = 311000000002L;
 	public static final int obj_width = 60;
 	public static final int obj_height = 40;
@@ -1449,7 +1475,7 @@ class Kellogg_Line extends JPanel
 
 class Kellogg_LineWithDrop extends JPanel
 {
-	final String ident = "$Id: switchboard.java,v 1.43 2012/02/22 23:17:36 drmiller Exp $";
+	final String ident = "$Id: switchboard.java,v 1.44 2012/02/24 23:47:06 drmiller Exp $";
 	static final long serialVersionUID = 311000000004L;
 	public static final int obj_width = 60;
 	public static final int obj_height =
@@ -1511,7 +1537,7 @@ class Kellogg_LineWithDrop extends JPanel
 class Kellogg_Plug extends JPanel
 	implements MouseListener
 {
-	final String ident = "$Id: switchboard.java,v 1.43 2012/02/22 23:17:36 drmiller Exp $";
+	final String ident = "$Id: switchboard.java,v 1.44 2012/02/24 23:47:06 drmiller Exp $";
 	static final long serialVersionUID = 311000000005L;
 	public static final int obj_width = 75;
 	public static final int obj_height = 55;
@@ -1636,7 +1662,7 @@ class Kellogg_Plug extends JPanel
 class Kellogg_RingSw extends JPanel
 	implements MouseListener, KeyListener
 {
-	final String ident = "$Id: switchboard.java,v 1.43 2012/02/22 23:17:36 drmiller Exp $";
+	final String ident = "$Id: switchboard.java,v 1.44 2012/02/24 23:47:06 drmiller Exp $";
 	static final long serialVersionUID = 311000000007L;
 	public static final int obj_width = 75;
 	public static final int obj_height = 66;
@@ -1748,18 +1774,18 @@ class Kellogg_RingSw extends JPanel
 	}
 }
 
-class Kellogg_ListenSw extends JPanel
+class Kellogg_StSpSw extends JPanel
 	implements MouseListener
 {
-	final String ident = "$Id: switchboard.java,v 1.43 2012/02/22 23:17:36 drmiller Exp $";
+	final String ident = "$Id: switchboard.java,v 1.44 2012/02/24 23:47:06 drmiller Exp $";
 	static final long serialVersionUID = 311000000006L;
 	public static final int obj_width = 75;
 	public static final int obj_height = 64;
 
 	private boolean _state;
-	private Kellogg_Cabinet _cab;
-	private static final String _tag = "Listen";
-	private static final int _tag_x = 20;
+	private Kellogg_SwListener _cab;
+	private String _tag;
+	private int _tag_x;
 
 	public void paint(Graphics g) {
 		super.paint(g);
@@ -1786,8 +1812,11 @@ class Kellogg_ListenSw extends JPanel
 		}
 	}
 
-	public Kellogg_ListenSw(Kellogg_Cabinet cab) {
+	public Kellogg_StSpSw(Kellogg_SwListener cab, String tag) {
 		_cab = cab;
+		_tag = tag;
+		int w = Kellogg_Cabinet.font2_metrics.stringWidth(_tag);
+		_tag_x = (obj_width - w) / 2;
 		setPreferredSize(new Dimension(obj_width, obj_height));
 		setOpaque(false);
 		setForeground(Color.black);
@@ -1809,7 +1838,7 @@ class Kellogg_ListenSw extends JPanel
 	public void setState(boolean on) {
 		if (_state != on) {
 			_state = on;
-			_cab.listener(_state);
+			if (_cab != null) _cab.listener(this, _state);
 			repaint();
 		}
 	}
@@ -1817,16 +1846,16 @@ class Kellogg_ListenSw extends JPanel
 
 class Kellogg_Circuit extends JPanel
 {
-	final String ident = "$Id: switchboard.java,v 1.43 2012/02/22 23:17:36 drmiller Exp $";
+	final String ident = "$Id: switchboard.java,v 1.44 2012/02/24 23:47:06 drmiller Exp $";
 	static final long serialVersionUID = 311000000008L;
 	public static final int obj_width = 75;
 	public static final int obj_height = 10 + 10 +
 		2 * Kellogg_Plug.obj_height +
 		Kellogg_RingSw.obj_height +
-		Kellogg_ListenSw.obj_height;
+		Kellogg_StSpSw.obj_height;
 
 	private JPanel _parent;
-	private Kellogg_ListenSw _listen;
+	private Kellogg_StSpSw _listen;
 	private Kellogg_RingSw _ring;
 	private Kellogg_Plug _call;
 	private Kellogg_Plug _ans;
@@ -1848,7 +1877,7 @@ class Kellogg_Circuit extends JPanel
 		_parent = parent;
 		_drop_ans = drp_up;
 		_drop_call = drp_lo;
-		_listen = new Kellogg_ListenSw(cab);
+		_listen = new Kellogg_StSpSw(cab, "Listen");
 		_ring = new Kellogg_RingSw(top, cab);
 		_call = new Kellogg_Plug(this, cab, _drop_call,
 						Kellogg_RingSw.PULL, "Call");
@@ -1946,22 +1975,47 @@ class Kellogg_Circuit extends JPanel
 }
 
 class Kellogg_NightAlarm extends JPanel
+	implements Kellogg_SwListener
 {
-	final String ident = "$Id: switchboard.java,v 1.43 2012/02/22 23:17:36 drmiller Exp $";
+	final String ident = "$Id: switchboard.java,v 1.44 2012/02/24 23:47:06 drmiller Exp $";
 	static final long serialVersionUID = 311000000048L;
 	public static final int obj_width = 75;
-	public static final int obj_height = 100;
+	public static final int obj_height = 250;
 
-	private int _alarming;
 	private boolean _alarm;
-	private boolean _alarm_on;
-	private boolean _alarm_const;
 	private Clip _ringer;
+
+	private Kellogg_StSpSw _na_sw;
+	private Kellogg_StSpSw _cd_sw;
+
+	private class Alarmer {
+		private int _count;
+
+		public Alarmer() {
+			_count = 0;
+		}
+
+		public void reset() { _count = 0; }
+
+		public boolean count() { return (_count != 0); }
+
+		public void alarmer(boolean on) {
+			if (on) {
+				++_count;
+			} else {
+				--_count;
+			}
+		}
+	}
+
+	private Alarmer _const_drop;
+	private Alarmer _coded_drop;
+	private Alarmer _coded_ring;
 
 	public void paint(Graphics g) {
 		super.paint(g);
-		String s = Integer.toString(_alarming);
-		g.drawString(s, 10, 90);
+//		String s = Integer.toString(_alarming);
+//		g.drawString(s, 10, 90);
 		if (_alarm) {
 			g.setColor(Color.red);
 			g.fillOval(10, 10, 55, 55);
@@ -1969,10 +2023,54 @@ class Kellogg_NightAlarm extends JPanel
 	}
 
 	public Kellogg_NightAlarm() {
-		_alarming = 0;
 		_alarm = false;
-		_alarm_on = false;
-		_alarm_const = false;
+		_const_drop = new Alarmer();
+		_coded_drop = new Alarmer();
+		_coded_ring = new Alarmer();
+
+		_na_sw = new Kellogg_StSpSw(this, "N.A.");
+		_cd_sw = new Kellogg_StSpSw(this, "Const.");
+		_na_sw.setState(false);
+		_cd_sw.setState(false);
+
+		GridBagLayout gb = new GridBagLayout();
+		setLayout(gb);
+		GridBagConstraints s = new GridBagConstraints();
+		s.fill = GridBagConstraints.NONE;
+		s.gridx = 0;
+		s.gridy = 0;
+		s.weightx = 0;
+		s.weighty = 0;
+		s.gridwidth = 1;
+		s.gridheight = 1;
+		s.anchor = GridBagConstraints.CENTER;
+
+		JPanel pan = new JPanel();
+		pan.setPreferredSize(new Dimension(obj_width, 100));
+		pan.setOpaque(false);
+		s.gridx = 0;
+		s.gridy = 0;
+		s.gridwidth = 1;
+		s.gridheight = 1;
+		gb.setConstraints(pan, s);
+		add(pan);
+
+		s.gridx = 0;
+		s.gridy = 1;
+		s.gridwidth = 1;
+		s.gridheight = 1;
+		gb.setConstraints(_na_sw, s);
+		add(_na_sw);
+
+		s.gridx = 0;
+		s.gridy = 2;
+		s.gridwidth = 1;
+		s.gridheight = 1;
+		gb.setConstraints(_cd_sw, s);
+		add(_cd_sw);
+
+		setPreferredSize(new Dimension(obj_width, obj_height));
+		setOpaque(false);
 
 		// sometimes, this fails because of exclusive audio
 		// access. not sure how to share, but need to disable
@@ -1990,37 +2088,44 @@ class Kellogg_NightAlarm extends JPanel
 		}
 	}
 
-	private void alarmer(boolean on) {
-		if (!_alarm_on) {
-			// should have been zeroed when turned off...
-			return;
+	private void alarmChanged() {
+		boolean alarming;
+		if (_na_sw.getState()) {
+			alarming = (_const_drop.count() ||
+				_cd_sw.getState() && _coded_drop.count() ||
+				!_cd_sw.getState() && _coded_ring.count());
+		} else {
+			alarming = false;
 		}
-		if (on) {
-			if (_alarming == 0) {
+		if (alarming != _alarm) {
+			_alarm = alarming;
+			if (_alarm) {
 				_alarm = true;
 				_ringer.setFramePosition(0);
 				_ringer.loop(Clip.LOOP_CONTINUOUSLY);
-			}
-			++_alarming;
-		} else {
-			--_alarming;
-			if (_alarming == 0) {
+			} else {
 				_alarm = false;
 				_ringer.loop(0);
 			}
+			repaint();
 		}
-		repaint(); // move later to "== 0" cases...
+	}
+
+	public void listener(JComponent sw, boolean state) {
+		alarmChanged();
 	}
 
 	public void alarmDrop(boolean coded, boolean on) {
-		if (!coded || _alarm_const) {
-			alarmer(on);
+		if (coded) {
+			_coded_drop.alarmer(on);
+		} else {
+			_const_drop.alarmer(on);
 		}
+		alarmChanged();
 	}
 
 	public void alarmRing(boolean on) {
-		if (!_alarm_const) {
-			alarmer(on);
-		}
+		_coded_ring.alarmer(on);
+		alarmChanged();
 	}
 }
