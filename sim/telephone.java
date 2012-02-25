@@ -1,5 +1,5 @@
 // Copyright (c) 2011,2012 Douglas Miller
-// $Id: telephone.java,v 1.19 2012/02/25 21:36:58 drmiller Exp $
+// $Id: telephone.java,v 1.20 2012/02/25 23:02:46 drmiller Exp $
 
 import java.awt.*;
 import javax.swing.*;
@@ -16,7 +16,7 @@ import java.util.Properties;
 
 public class telephone
 {
-	final String ident = "$Id: telephone.java,v 1.19 2012/02/25 21:36:58 drmiller Exp $";
+	final String ident = "$Id: telephone.java,v 1.20 2012/02/25 23:02:46 drmiller Exp $";
 
 	static final Color cabinet = new Color(165, 125, 14);
 	static final Color cabinet_lt = new Color(185, 145, 34);
@@ -230,7 +230,7 @@ class StrombergCarlson_Help extends JComponent
 		JLabel lab = new JLabel("<HTML><CENTER>"+
 				"Stromberg-Carlson 1915 Magneto Telephone<BR>" +
 				"Simulator<BR>" +
-				"$Revision: 1.19 $ $Date: 2012/02/25 21:36:58 $<BR>" +
+				"$Revision: 1.20 $ $Date: 2012/02/25 23:02:46 $<BR>" +
 				"<BR>" +
 				"<IMG SRC=\""+url.toString()+"\">" +
 				"<BR>" +
@@ -375,10 +375,7 @@ class StrombergCarlson_Cabinet extends JPanel
 
 	private JTextField _host_t;
 	private JPanel _host_f;
-	private InetAddress _host;
-	private JTextField _port_t;
-	private JPanel _port_f;
-	private int _port;
+	private String[] _hosts;
 
 	public StrombergCarlson_Cabinet(Component top, StrombergCarlson_Properties prop,
 							StrombergCarlson_Help help) {
@@ -575,28 +572,13 @@ class StrombergCarlson_Cabinet extends JPanel
 		add(_scroll);
  
 		String h = _prop.getProperty("switchboard_host");
-		_host = null;
-		try {
-			if (h == null || h.length() == 0 || h.equals("localhost")) {
-				_host = InetAddress.getLocalHost();
-			} else {
-				_host = InetAddress.getByName(h);
-			}
-		} catch(IOException e) {
-			telephone.warning("Get Host", e.getMessage());
-		}
-		_host_t = new JTextField();
-		_host_t.setPreferredSize(new Dimension(150,20));
-		_host_f = new JPanel();
-		_host_f.add(new JLabel("Host:"));
-		_host_f.add(_host_t);
+		_hosts = h.split("[ \\t\\n]+");
 
-		_port = Integer.valueOf(_prop.getProperty("switchboard_port"));;
-		_port_t = new JTextField();
-		_port_t.setPreferredSize(new Dimension(50,20));
-		_port_f = new JPanel();
-		_port_f.add(new JLabel("Port:"));
-		_port_f.add(_port_t);
+		_host_t = new JTextField();
+		_host_t.setPreferredSize(new Dimension(200, _hosts.length * 20));
+		_host_f = new JPanel();
+		_host_f.add(new JLabel("Hosts:"));
+		_host_f.add(_host_t);
 
 		Thread t = new Thread(this);
 		t.start();
@@ -616,9 +598,10 @@ class StrombergCarlson_Cabinet extends JPanel
 			return;
 		}
 		if (m.getMnemonic() == KeyEvent.VK_U) {
-			_host_t.setText(_host.getHostName());
-			_port_t.setText(Integer.toString(_port));
-			Object[] dia = { _host_f, _port_f };
+			String h = _prop.getProperty("switchboard_host");
+			h = h.replaceAll("[ \\t\\n]+", "\n");
+			_host_t.setText(h);
+			Object[] dia = { _host_f };
 			int ret = JOptionPane.showConfirmDialog(this, dia,
 				"Set Switchboard Parameters",
 				JOptionPane.OK_CANCEL_OPTION,
@@ -627,24 +610,11 @@ class StrombergCarlson_Cabinet extends JPanel
 				return;
 			}
 			// TBD: change parameters and restart?
-			InetAddress h;
 			String hs = _host_t.getText();
-			try {
-				if (hs == null || hs.length() == 0 || hs.equals("localhost")) {
-					h = InetAddress.getLocalHost();
-				} else {
-					h = InetAddress.getByName(hs);
-				}
-			} catch (IOException ee) {
-				h = null;
-			}
-			if (h != null) _host = h;
-			try {
-				_port = Integer.valueOf(_port_t.getText());
-			} catch (NumberFormatException ee) { }
-			_prop.setProperty("switchboard_host", _host.getHostName());
-			_prop.setProperty("switchboard_port", Integer.toString(_port));
+			hs = hs.replaceAll("[ \\t\\n]+", " ");
+			_prop.setProperty("switchboard_host", hs);
 			_prop.save();
+			_hosts = hs.split("[ \\t\\n]+");
 			return;
 		}
 	}
@@ -702,18 +672,26 @@ class StrombergCarlson_Cabinet extends JPanel
 			_bell.ring(false);
 		} else if (s.startsWith("%NAME=")) {
 			_plate.setName(s.substring(6));
-} else {
-System.err.println("bad command \""+s+"\"");
 		}
 	}
 
 	public void run() {
+		int hx = 0;
 		while (true) {
 			if (_s == null) {
+				String[] hp = _hosts[hx].split(":");
 				try {
-					_s = new Socket(_host, _port);
-				} catch (IOException ee) {
+					int p = Integer.valueOf(hp[1]);
+					InetAddress ia;
+					if (hp[0].length() == 0 || hp[0].equals("localhost")) {
+						ia = InetAddress.getByName(null);
+					} else {
+						ia = InetAddress.getByName(hp[0]);
+					}
+					_s = new Socket(ia, p);
+				} catch (Exception ee) {
 					_s = null;
+					hx = (hx + 1) % _hosts.length;
 				}
 				if (_s == null) {
 					_plate.setName("waiting");
