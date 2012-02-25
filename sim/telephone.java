@@ -1,5 +1,5 @@
 // Copyright (c) 2011,2012 Douglas Miller
-// $Id: telephone.java,v 1.18 2012/02/22 22:08:09 drmiller Exp $
+// $Id: telephone.java,v 1.19 2012/02/25 21:36:58 drmiller Exp $
 
 import java.awt.*;
 import javax.swing.*;
@@ -16,7 +16,7 @@ import java.util.Properties;
 
 public class telephone
 {
-	final String ident = "$Id: telephone.java,v 1.18 2012/02/22 22:08:09 drmiller Exp $";
+	final String ident = "$Id: telephone.java,v 1.19 2012/02/25 21:36:58 drmiller Exp $";
 
 	static final Color cabinet = new Color(165, 125, 14);
 	static final Color cabinet_lt = new Color(185, 145, 34);
@@ -184,8 +184,8 @@ class StrombergCarlson_Help extends JComponent
 		_frame.setLayout(new FlowLayout());
 		try {
 			_text = new JEditorPane(url);
-		} catch (IOException ee) {
-			System.err.println("can't create Help JEditorPane "+url);
+		} catch (Exception ee) {
+			telephone.fatal("Help Setup", ee.getMessage());
 		}
 		_text.setEditable(false);
 		_text.setFont(new Font("Sans-serif", Font.PLAIN, 12));
@@ -230,7 +230,7 @@ class StrombergCarlson_Help extends JComponent
 		JLabel lab = new JLabel("<HTML><CENTER>"+
 				"Stromberg-Carlson 1915 Magneto Telephone<BR>" +
 				"Simulator<BR>" +
-				"$Revision: 1.18 $ $Date: 2012/02/22 22:08:09 $<BR>" +
+				"$Revision: 1.19 $ $Date: 2012/02/25 21:36:58 $<BR>" +
 				"<BR>" +
 				"<IMG SRC=\""+url.toString()+"\">" +
 				"<BR>" +
@@ -360,9 +360,8 @@ class StrombergCarlson_Cabinet extends JPanel
 	private Component _top;
 
 	private Socket _s;
-	private InputStream _in;
+	private BufferedReader _in;
 	private OutputStream _out;
-	private byte[] _buf;
 
 	private boolean _off_hook;
 	private String _txt;
@@ -599,8 +598,6 @@ class StrombergCarlson_Cabinet extends JPanel
 		_port_f.add(new JLabel("Port:"));
 		_port_f.add(_port_t);
 
-		_buf = new byte[128];
-
 		Thread t = new Thread(this);
 		t.start();
 	}
@@ -698,8 +695,19 @@ class StrombergCarlson_Cabinet extends JPanel
 		}
 	}
 
+	private void doCommand(String s) {
+		if (s.equals("%RING\n")) {
+			_bell.ring(true);
+		} else if (s.equals("%RINGOFF\n")) {
+			_bell.ring(false);
+		} else if (s.startsWith("%NAME=")) {
+			_plate.setName(s.substring(6));
+} else {
+System.err.println("bad command \""+s+"\"");
+		}
+	}
+
 	public void run() {
-		int n;
 		while (true) {
 			if (_s == null) {
 				try {
@@ -715,21 +723,23 @@ class StrombergCarlson_Cabinet extends JPanel
 					}
 				} else {
 					try {
-						_in = _s.getInputStream();
+						_in = new BufferedReader(new InputStreamReader(_s.getInputStream()));
 						_out = _s.getOutputStream();
-						String s = "%NAME=" +
-							System.getProperty("user.name");
+						String s = "%TYPE=telephone\n";
+						_out.write(s.getBytes());
+						s = "%NAME=" +
+							System.getProperty("user.name") +
+							"\n";
 						_out.write(s.getBytes());
 					} catch (IOException ee) {
 					}
 				}
 			} else {
+				String s = null;
 				try {
-					n = _in.read(_buf);
-				} catch(IOException e) {
-					n = -1;
-				}
-				if (n < 0) {
+					s = _in.readLine();
+				} catch(IOException e) { }
+				if (s == null) {
 					try {
 						_in.close();
 						_out.close();
@@ -738,13 +748,8 @@ class StrombergCarlson_Cabinet extends JPanel
 					_s = null;
 					continue;
 				}
-				String s = new String(_buf, 0, n);
-				if (s.equals("%RING\n")) {
-					_bell.ring(true);
-				} else if (s.equals("%RINGOFF\n")) {
-					_bell.ring(false);
-				} else if (s.startsWith("%NAME=")) {
-					_plate.setName(s.substring(6));
+				if (s.startsWith("%")) {
+					doCommand(s);
 				} else {
 					post(s);
 				}
