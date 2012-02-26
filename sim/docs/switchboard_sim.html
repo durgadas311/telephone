@@ -1,5 +1,5 @@
 <HTML>
-<!-- $Id: switchboard_sim.html,v 1.6 2012/02/18 21:32:11 drmiller Exp $ -->
+<!-- $Id: switchboard_sim.html,v 1.7 2012/02/26 01:44:25 drmiller Exp $ -->
 
 <H2>Operating the Simulator</H2>
 
@@ -123,14 +123,12 @@ and allows for audible alarms when subscribers ring.
 <DT><B>Toll Line</B>
 <DD>Enabling the toll line uses 3 subscriber line positions,
 and implements the toll line connections between multiple switchboards.
-<DT><B>Host</B>
-<DD>This selects the hostname of this switchboard.
+<DT><B>Hosts</B>
+<DD>This selects the hostname(s) and port number(s) of switchboards.
 Telephones must use the same hostname and port number in order to function with this
 switchboard.
-<DT><B>Port</B>
-<DD>This selects the port number of this switchboard.
-Telephones must use the same hostname and port number in order to function with this
-switchboard.
+The format of each host is <I>hostname</I><B>:</B><I>port</I>, each on
+a separate line. Use "localhost" for use only on the local computer.
 </DL>
 
 <H3>Telephone Sets</H3>
@@ -182,13 +180,11 @@ associated with this telephone.
 
 <DL>
 <DT><B>Host</B>
-<DD>This selects the hostname of the switchboard.
+<DD>This selects the hostname(s) and port number(s) of switchboards.
 Telephones will be subscribed to the switchboard using the
 indicated hostname and port number.
-<DT><B>Port</B>
-<DD>This selects the port number of the switchboard.
-Telephones will be subscribed to the switchboard using the
-indicated hostname and port number.
+The format of each host is <I>hostname</I><B>:</B><I>port</I>, each on
+a separate line. Use "localhost" for use only on the local computer.
 </DL>
 
 </HTML>
