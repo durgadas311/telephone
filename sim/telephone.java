@@ -1,5 +1,5 @@
 // Copyright (c) 2011,2012 Douglas Miller
-// $Id: telephone.java,v 1.20 2012/02/25 23:02:46 drmiller Exp $
+// $Id: telephone.java,v 1.21 2012/02/26 01:31:25 drmiller Exp $
 
 import java.awt.*;
 import javax.swing.*;
@@ -16,7 +16,7 @@ import java.util.Properties;
 
 public class telephone
 {
-	final String ident = "$Id: telephone.java,v 1.20 2012/02/25 23:02:46 drmiller Exp $";
+	final String ident = "$Id: telephone.java,v 1.21 2012/02/26 01:31:25 drmiller Exp $";
 
 	static final Color cabinet = new Color(165, 125, 14);
 	static final Color cabinet_lt = new Color(185, 145, 34);
@@ -230,7 +230,7 @@ class StrombergCarlson_Help extends JComponent
 		JLabel lab = new JLabel("<HTML><CENTER>"+
 				"Stromberg-Carlson 1915 Magneto Telephone<BR>" +
 				"Simulator<BR>" +
-				"$Revision: 1.20 $ $Date: 2012/02/25 23:02:46 $<BR>" +
+				"$Revision: 1.21 $ $Date: 2012/02/26 01:31:25 $<BR>" +
 				"<BR>" +
 				"<IMG SRC=\""+url.toString()+"\">" +
 				"<BR>" +
@@ -666,9 +666,9 @@ class StrombergCarlson_Cabinet extends JPanel
 	}
 
 	private void doCommand(String s) {
-		if (s.equals("%RING\n")) {
+		if (s.equals("%RING")) {
 			_bell.ring(true);
-		} else if (s.equals("%RINGOFF\n")) {
+		} else if (s.equals("%RINGOFF")) {
 			_bell.ring(false);
 		} else if (s.startsWith("%NAME=")) {
 			_plate.setName(s.substring(6));
