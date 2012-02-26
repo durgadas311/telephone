@@ -1,5 +1,5 @@
 <HTML>
-<!-- $Id: switchboard_sim.html,v 1.7 2012/02/26 01:44:25 drmiller Exp $ -->
+<!-- $Id: switchboard_sim.html,v 1.8 2012/02/26 02:45:05 drmiller Exp $ -->
 
 <H2>Operating the Simulator</H2>
 
@@ -113,22 +113,25 @@ the switchboard program be restarted.
 <DL>
 <DT><B>Num Lines</B>
 <DD>The number of subscriber lines supported.
-Minimum is 5, or a multiple of 10.
+Minimum is 5, or a multiple of 10. Default is 5.
 <DT><B>Num Circuits</B>
 <DD>The number of circuits supported. Maximum is 8.
 The default, if set to 0 or blank, is 40% of the number of lines.
 <DT><B>Night Alarm</B>
 <DD>Enabling the night alarm uses one circuit position,
 and allows for audible alarms when subscribers ring.
+Default is disabled.
 <DT><B>Toll Line</B>
 <DD>Enabling the toll line uses 3 subscriber line positions,
 and implements the toll line connections between multiple switchboards.
+Default is disabled.
 <DT><B>Hosts</B>
 <DD>This selects the hostname(s) and port number(s) of switchboards.
 Telephones must use the same hostname and port number in order to function with this
 switchboard.
 The format of each host is <I>hostname</I><B>:</B><I>port</I>, each on
 a separate line. Use "localhost" for use only on the local computer.
+Default is ":31100" which equates to the localhost only using port 31100.
 </DL>
 
 <H3>Telephone Sets</H3>
@@ -185,6 +188,7 @@ Telephones will be subscribed to the switchboard using the
 indicated hostname and port number.
 The format of each host is <I>hostname</I><B>:</B><I>port</I>, each on
 a separate line. Use "localhost" for use only on the local computer.
+Default is ":31100" which equates to the localhost only using port 31100.
 </DL>
 
 </HTML>

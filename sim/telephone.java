@@ -1,5 +1,5 @@
 // Copyright (c) 2011,2012 Douglas Miller
-// $Id: telephone.java,v 1.21 2012/02/26 01:31:25 drmiller Exp $
+// $Id: telephone.java,v 1.22 2012/02/26 02:45:05 drmiller Exp $
 
 import java.awt.*;
 import javax.swing.*;
@@ -16,7 +16,7 @@ import java.util.Properties;
 
 public class telephone
 {
-	final String ident = "$Id: telephone.java,v 1.21 2012/02/26 01:31:25 drmiller Exp $";
+	final String ident = "$Id: telephone.java,v 1.22 2012/02/26 02:45:05 drmiller Exp $";
 
 	static final Color cabinet = new Color(165, 125, 14);
 	static final Color cabinet_lt = new Color(185, 145, 34);
@@ -135,8 +135,7 @@ class StrombergCarlson_Properties extends Properties
 		} catch (Exception e) {
 			//telephone.warning("Load Setup", e.getMessage());
 			// set defaults
-			setProperty("switchboard_host", "localhost");
-			setProperty("switchboard_port", "31100");
+			setProperty("switchboard_host", "");
 			// save, and force existence of file?
 		}
 	}
@@ -230,7 +229,7 @@ class StrombergCarlson_Help extends JComponent
 		JLabel lab = new JLabel("<HTML><CENTER>"+
 				"Stromberg-Carlson 1915 Magneto Telephone<BR>" +
 				"Simulator<BR>" +
-				"$Revision: 1.21 $ $Date: 2012/02/26 01:31:25 $<BR>" +
+				"$Revision: 1.22 $ $Date: 2012/02/26 02:45:05 $<BR>" +
 				"<BR>" +
 				"<IMG SRC=\""+url.toString()+"\">" +
 				"<BR>" +
@@ -572,6 +571,7 @@ class StrombergCarlson_Cabinet extends JPanel
 		add(_scroll);
  
 		String h = _prop.getProperty("switchboard_host");
+		if (h.length() == 0) h = ":31100";
 		_hosts = h.split("[ \\t\\n]+");
 
 		_host_t = new JTextField();
