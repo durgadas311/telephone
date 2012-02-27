@@ -1,5 +1,5 @@
 // Copyright (c) 2011,2012 Douglas Miller
-// $Id: telephone.java,v 1.22 2012/02/26 02:45:05 drmiller Exp $
+// $Id: telephone.java,v 1.23 2012/02/27 00:39:01 drmiller Exp $
 
 import java.awt.*;
 import javax.swing.*;
@@ -16,7 +16,7 @@ import java.util.Properties;
 
 public class telephone
 {
-	final String ident = "$Id: telephone.java,v 1.22 2012/02/26 02:45:05 drmiller Exp $";
+	final String ident = "$Id: telephone.java,v 1.23 2012/02/27 00:39:01 drmiller Exp $";
 
 	static final Color cabinet = new Color(165, 125, 14);
 	static final Color cabinet_lt = new Color(185, 145, 34);
@@ -229,7 +229,7 @@ class StrombergCarlson_Help extends JComponent
 		JLabel lab = new JLabel("<HTML><CENTER>"+
 				"Stromberg-Carlson 1915 Magneto Telephone<BR>" +
 				"Simulator<BR>" +
-				"$Revision: 1.22 $ $Date: 2012/02/26 02:45:05 $<BR>" +
+				"$Revision: 1.23 $ $Date: 2012/02/27 00:39:01 $<BR>" +
 				"<BR>" +
 				"<IMG SRC=\""+url.toString()+"\">" +
 				"<BR>" +
@@ -737,7 +737,7 @@ class StrombergCarlson_Cabinet extends JPanel
 
 	public void post(String s) {
 		if (!_off_hook) return;
-		_text.append(">> " + s);
+		_text.append(">> " + s + "\n");
 		_text.setCaretPosition(_text.getText().length());
 	}
 
