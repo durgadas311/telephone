@@ -429,7 +429,7 @@ class StrombergCarlson_Cabinet extends JPanel
 		ugb.setConstraints(pan, s);
 		upper.add(pan);
 
-		_bell = new StrombergCarlson_Bell();
+		_bell = new StrombergCarlson_Bell(_prop);
 		s.gridx = 0;
 		s.gridy = row++;
 		s.gridwidth = 1;
@@ -684,7 +684,7 @@ class StrombergCarlson_Cabinet extends JPanel
 					int p = Integer.valueOf(hp[1]);
 					InetAddress ia;
 					if (hp[0].length() == 0 || hp[0].equals("localhost")) {
-						ia = InetAddress.getByName(null);
+						ia = InetAddress.getLocalHost();
 					} else {
 						ia = InetAddress.getByName(hp[0]);
 					}
@@ -995,23 +995,47 @@ class StrombergCarlson_Bell extends JPanel
 		}
 	}
 
-	public StrombergCarlson_Bell() {
+	public StrombergCarlson_Bell(Properties props) {
 		setOpaque(false);
 		setPreferredSize(new Dimension(obj_width, obj_height));
 		// sometimes, this fails because of exclusive audio
 		// access. not sure how to share, but need to disable
 		// audio in that case.
 		try {
-			_ringer = AudioSystem.getClip();
 			AudioInputStream wav =
 				AudioSystem.getAudioInputStream(
-					telephone.class.getResourceAsStream(
-						"sounds/ring.wav"));
+					new BufferedInputStream(
+						telephone.class.getResourceAsStream(
+							"sounds/ring.wav")));
+			AudioFormat format = wav.getFormat();
+			DataLine.Info info = new DataLine.Info(Clip.class, format);
+			_ringer = (Clip)AudioSystem.getLine(info);
 			_ringer.open(wav);
 			_ringer.setLoopPoints(0, 4500);
+			int volume = 50;
+			String s = props.getProperty("ringer_volume");
+			if (s != null) try {
+				volume = Integer.valueOf(s);
+				if (volume < 0) volume = 0;
+				if (volume > 100) volume = 100;
+			} catch (Exception e) { }
+			FloatControl vol = null;
+			if (_ringer.isControlSupported(FloatControl.Type.MASTER_GAIN)) {
+				vol = (FloatControl)_ringer.getControl(FloatControl.Type.MASTER_GAIN);
+			} else if (_ringer.isControlSupported(FloatControl.Type.VOLUME)) {
+				vol = (FloatControl)_ringer.getControl(FloatControl.Type.VOLUME);
+			}
+			if (vol != null) {
+				float min = vol.getMinimum();
+				float max = vol.getMaximum();
+				float gain = (float)(min + ((max - min) * (volume / 100.0)));
+				vol.setValue(gain);
+			}
+
 		} catch (Exception e) {
 			_ringer = null;
-//System.err.println(e.getMessage());
+//e.printStackTrace();
+//System.exit(1);
 		}
 //System.err.println("Frames="+_ringer.getFrameLength()+", time="+_ringer.getMicrosecondLength());
 // frame_loop = ((double)102000.0 / _ringer.getMicrosecondLength()) * _ringer.getFrameLength();
@@ -1021,8 +1045,7 @@ class StrombergCarlson_Bell extends JPanel
 	}
 
 	public void ring(boolean on) {
-		_ring = on;
-		if (_ringer != null) {
+		if (_ringer != null && _ring != on) {
 			if (on) {
 				_ringer.setFramePosition(0);
 				_ringer.loop(Clip.LOOP_CONTINUOUSLY);
@@ -1030,6 +1053,7 @@ class StrombergCarlson_Bell extends JPanel
 				_ringer.loop(0);
 			}
 		}
+		_ring = on;
 		repaint();
 	}
 }

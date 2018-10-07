@@ -2,6 +2,8 @@
 
 include Makefile.ship
 
+SHELL=/bin/bash
+
 INSNAME = tele-sb-sim
 INSDIR = ~
 INSDEST = $(INSDIR)/$(INSNAME)
@@ -30,8 +32,8 @@ temp_src:
 	cp docs/*.{html,png} $(TMPDEST)/docs
 	cp sounds/*.wav $(TMPDEST)/sounds
 
-ship: tar packages
-	mv -v $(SRCTAR) $(PACKAGES) /http/durgadas.com/sebhc/tele-sb-sim
+ship: tar jars # was: packages
+	rsync -Wuv $(JARS) $(SRCTAR) durgadas.com:/http/durgadas.com/sebhc/tele-sb-sim/
 
 tar: temp_src
 	tar -czvf $(SRCTAR) -C ${TMPDIR} $(INSNAME)

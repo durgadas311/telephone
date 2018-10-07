@@ -522,7 +522,7 @@ class Kellogg_Cabinet extends JLayeredPane
 		}
 
 		if (_na) {
-			_night_alarm = new Kellogg_NightAlarm();
+			_night_alarm = new Kellogg_NightAlarm(prop);
 			if (_nc == max_circs) --_nc;
 		} else {
 			_night_alarm = null;
@@ -2055,7 +2055,7 @@ class Kellogg_NightAlarm extends JPanel
 		}
 	}
 
-	public Kellogg_NightAlarm() {
+	public Kellogg_NightAlarm(Properties props) {
 		_alarm = false;
 		_const_drop = new Alarmer();
 		_coded_drop = new Alarmer();
@@ -2120,13 +2120,35 @@ class Kellogg_NightAlarm extends JPanel
 		// access. not sure how to share, but need to disable
 		// audio in that case.
 		try {
-			_ringer = AudioSystem.getClip();
 			AudioInputStream wav =
 				AudioSystem.getAudioInputStream(
-					switchboard.class.getResourceAsStream(
-						"sounds/ring.wav"));
+					new BufferedInputStream(
+						switchboard.class.getResourceAsStream(
+							"sounds/ring.wav")));
+			AudioFormat format = wav.getFormat();
+			DataLine.Info info = new DataLine.Info(Clip.class, format);
+			_ringer = (Clip)AudioSystem.getLine(info);
 			_ringer.open(wav);
 			_ringer.setLoopPoints(0, 4500);
+			int volume = 50;
+			String p = props.getProperty("nightalarm_volume");
+			if (p != null) try {
+				volume = Integer.valueOf(p);
+				if (volume < 0) volume = 0;
+				if (volume > 100) volume = 100;
+			} catch (Exception e) { }
+			FloatControl vol = null;
+			if (_ringer.isControlSupported(FloatControl.Type.MASTER_GAIN)) {
+				vol = (FloatControl)_ringer.getControl(FloatControl.Type.MASTER_GAIN);
+			} else if (_ringer.isControlSupported(FloatControl.Type.VOLUME)) {
+				vol = (FloatControl)_ringer.getControl(FloatControl.Type.VOLUME);
+			}
+			if (vol != null) {
+				float min = vol.getMinimum();
+				float max = vol.getMaximum();
+				float gain = (float)(min + ((max - min) * (volume / 100.0)));
+				vol.setValue(gain);
+			}
 		} catch (Exception e) {
 			_ringer = null;
 		}

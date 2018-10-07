@@ -8,10 +8,10 @@ all: switchboard.class telephone.class
 clean:
 
 switchboard.class: switchboard.java
-	javac switchboard.java
+	javac -source 1.7 -target 1.7 switchboard.java
 
 telephone.class: telephone.java
-	javac telephone.java
+	javac -source 1.7 -target 1.7 telephone.java
 
 jars: $(JARS)
 
