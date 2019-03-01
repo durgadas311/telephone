@@ -571,7 +571,7 @@ class StrombergCarlson_Cabinet extends JPanel
 		add(_scroll);
  
 		String h = _prop.getProperty("switchboard_host");
-		if (h.length() == 0) h = ":31100";
+		if (h.length() == 0) h = "localhost:31100";
 		_hosts = h.split("[ \\t\\n]+");
 
 		_host_t = new JTextField();
@@ -681,7 +681,10 @@ class StrombergCarlson_Cabinet extends JPanel
 			if (_s == null) {
 				String[] hp = _hosts[hx].split(":");
 				try {
-					int p = Integer.valueOf(hp[1]);
+					int p = 31100;
+					if (hp.length > 1) {
+						p = Integer.valueOf(hp[1]);
+					}
 					InetAddress ia;
 					if (hp[0].length() == 0 || hp[0].equals("localhost")) {
 						ia = InetAddress.getLocalHost();

@@ -681,7 +681,7 @@ class Kellogg_Cabinet extends JLayeredPane
 		_tc_f.add(_tc_t);
 
 		String h = _prop.getProperty("switchboard_host");
-		if (h.length() == 0) h = ":31100";
+		if (h.length() == 0) h = "localhost:31100";
 		_hosts = h.split("[ \\t\\n]+");
 		_host_t = new JTextArea();
 		_host_t.setPreferredSize(new Dimension(200, _hosts.length * 20));
@@ -691,10 +691,15 @@ class Kellogg_Cabinet extends JLayeredPane
 
 		int x;
 		Exception ee = null;
+		String em = "";
+		int p = 31100;
 		for (x = 0; x < _hosts.length; ++x) {
 			String[] hp = _hosts[x].split(":");
 			try {
-				int p = Integer.valueOf(hp[1]);
+				p = 31100;
+				if (hp.length > 1) {
+					p = Integer.valueOf(hp[1]);
+				}
 				InetAddress ia;
 				if (hp[0].length() == 0 || hp[0].equals("localhost")) {
 					ia = InetAddress.getLocalHost();
@@ -708,10 +713,12 @@ class Kellogg_Cabinet extends JLayeredPane
 			} catch(Exception e) {
 				_ss = null;
 				ee = e;
+				if (p < 3000) em = "<BR>Is port " + p + " restricted?";
 			}
 		}
 		if (_ss == null) {
-			switchboard.fatal("ServerSocket", ee.getMessage());
+			switchboard.fatal("ServerSocket",
+				"<HTML>" + ee.getMessage() + em + "</HTML>");
 		}
 		Thread t = new Thread(this);
 		t.start();
