@@ -33,16 +33,15 @@ temp_src:
 	cp sounds/*.wav $(TMPDEST)/sounds
 
 ship: tar jars # was: packages
-	rsync -Wuv $(JARS) $(SRCTAR) durgadas.com:/http/durgadas.com/sebhc/tele-sb-sim/
+	rsync -Wuv $(JARS) $(SRCTAR) durgadas.com:/var/www/html/sebhc/tele-sb-sim/
 
 tar: temp_src
 	tar -czvf $(SRCTAR) -C ${TMPDIR} $(INSNAME)
 	rm -rf $(TMPDEST)
 
 www: _FRC_
-	mkdir -p /http/durgadas.com/sims/tele-sb-sim/docs
-	cp www/*.html www/*.png /http/durgadas.com/sims/tele-sb-sim
-	cp docs/*.html docs/*.png /http/durgadas.com/sims/tele-sb-sim/docs
+	rsync -Wuv www/*.html www/*.png durgadas.com:/var/www/html/sims/tele-sb-sim
+	rsync -Wuv docs/*.html docs/*.png durgadas.com:/var/www/html/sims/tele-sb-sim/docs
 
 temp_dest: all jars
 	mkdir -p $(TMPDEST)
