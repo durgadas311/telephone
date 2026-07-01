@@ -1,98 +1,66 @@
-# $Id: Makefile,v 1.20 2012/02/19 22:55:04 drmiller Exp $
+#
 
-include Makefile.ship
+MANIFESTS = sb_manifest.txt t_manifest.txt
+JARS = switchboard.jar telephone.jar
 
-SHELL=/bin/bash
+PH_CLASS = telephone.class \
+	StrombergCarlson_Bell.class \
+	StrombergCarlson_Cabinet.class \
+	StrombergCarlson_Help.class \
+	StrombergCarlson_Magneto.class \
+	StrombergCarlson_NamePlate.class \
+	StrombergCarlson_Properties.class \
+	StrombergCarlson_Rec.class \
+	StrombergCarlson_Shelf.class \
+	StrombergCarlson_Trans.class
 
-INSNAME = tele-sb-sim
-INSDIR = ~
-INSDEST = $(INSDIR)/$(INSNAME)
-TMPDIR = temp
-TMPDEST = $(TMPDIR)/$(INSNAME)
+SB_CLASS = switchboard.class \
+	Kellogg_Cabinet.class \
+	Kellogg_Circuit.class \
+	Kellogg_Drop.class \
+	Kellogg_Help.class \
+	Kellogg_Line.class \
+	Kellogg_LineWithDrop.class \
+	Kellogg_Magneto.class \
+	Kellogg_NightAlarm.class \
+	Kellogg_Plug.class \
+	Kellogg_Properties.class \
+	Kellogg_RingSw.class \
+	Kellogg_StSpSw.class \
+	Kellogg_SwListener.class
 
-PNGS = $(wildcard icons/*-*x*.png)
-PNGS := $(filter %32x32.png %48x48.png %128x128.png, $(PNGS))
-ICNS = $(subst .png,.icns,$(PNGS))
-WICONS = $(subst .png,.ico,$(PNGS))
+SBX_CLASS = 'Kellogg_Cabinet$$Kellogg_Cabinet_Overlay.class' \
+	'Kellogg_NightAlarm$$Alarmer.class'
 
-PACKAGES = $(INSNAME).tgz $(INSNAME).exe $(INSNAME).dmg
-SRCTAR = $(INSNAME)-src.tgz
+all: $(SB_CLASS) $(PH_CLASS)
+
+%.class: %.java
+	javac $?
+
+clean:
 
 clobber: clean
-	rm -f *.class $(JARS) $(PACKAGES) $(MANIFESTS)
+	rm -f *.class $(JARS) $(MANIFESTS)
 
-packages: $(PACKAGES)
+jar: $(JARS)
 
-temp_src:
-	mkdir -p $(TMPDEST)
-	cp *.java README LICENSE $(TMPDEST)
-	cp Makefile.ship $(TMPDEST)/Makefile
-	mkdir -p $(TMPDEST)/{icons,docs,sounds}
-	cp icons/*.{png,ico,icns} $(TMPDEST)/icons
-	cp docs/*.{html,png} $(TMPDEST)/docs
-	cp sounds/*.wav $(TMPDEST)/sounds
+switchboard.jar: $(SB_CLASS) sb_manifest.txt
+	jar cfm $@ sb_manifest.txt $(SB_CLASS) $(SBX_CLASS) \
+		docs/*.html docs/*.png icons/*.png sounds/*.wav
 
-ship: tar jars # was: packages
-	rsync -Wuv $(JARS) $(SRCTAR) durgadas.com:/var/www/html/sebhc/tele-sb-sim/
+sb_manifest.txt:
+	echo "Main-Class: switchboard" >$@
 
-tar: temp_src
-	tar -czvf $(SRCTAR) -C ${TMPDIR} $(INSNAME)
-	rm -rf $(TMPDEST)
+telephone.jar: $(PH_CLASS) t_manifest.txt
+	jar cfm $@ t_manifest.txt $(PH_CLASS) \
+		docs/*.html docs/*.png icons/*.png sounds/*.wav
+
+t_manifest.txt:
+	echo "Main-Class: telephone" >$@
 
 www: _FRC_
 	rsync -Wuv www/*.html www/*.png durgadas.com:/var/www/html/sims/tele-sb-sim
 	rsync -Wuv docs/*.html docs/*.png durgadas.com:/var/www/html/sims/tele-sb-sim/docs
 
-temp_dest: all jars
-	mkdir -p $(TMPDEST)
-	cp *.jar run-* INSTALL UNINSTALL *.desktop.tmplt $(TMPDEST)
-	chmod +x $(TMPDEST)/run-* $(TMPDEST)/INSTALL $(TMPDEST)/UNINSTALL
-	mkdir -p $(TMPDEST)/icons
-	cp icons/*-*x*.png $(TMPDEST)/icons
-
-$(INSNAME).tgz: temp_dest
-	tar -czvf $(INSNAME).tgz -C $(TMPDIR) $(INSNAME)
-	rm -rf $(TMPDIR)
-
-$(INSNAME).dmg: all icns jars
-	rm -f $@
-	dd if=/dev/zero of=$@ bs=64k count=16
-	hformat -l TELE-SB-SIM $@
-	hmount $@
-	for p in Switchboard Telephone; do \
-		jar=$${p#T}; jar=$${jar#S}; \
-		hmkdir $${p}.app; \
-		hcd $${p}.app; \
-		hmkdir Contents; \
-		hcd Contents; \
-		hcopy -r $${p}.plist.tmplt :Info.plist; \
-		hmkdir Resources MacOS; \
-		hcopy -r *$${jar}.jar :MacOS; \
-		hcopy -r run-$${p} :MacOS; \
-		hcopy -r icons/$${p}-*x*.icns :Resources; \
-		hcd; \
-	done
-	hcopy -r Uninstall-$(INSNAME).sh :Uninstall-$(INSNAME)
-	hcopy -r README.osx :README.html
-	humount $@
-
-$(INSNAME).exe: all winicons jars $(INSNAME).nsi
-	makensis $(INSNAME).nsi
-
-install: temp_dest
-	rm -rf $(INSDEST)
-	mv $(TMPDEST) $(INSDIR)
-	rmdir $(TMPDIR)
-	cd $(INSDEST); ./INSTALL
-
-icns: $(ICNS)
-
-%.icns: %.png
-	sips -s format icns $? --out $@
-
-winicons: $(WICONS)
-
-%.ico: %.png
-	sips -s format ico $? --out $@
-
-_FRC_:
+ship: $(JARS)
+	cp ${JARS} ../
