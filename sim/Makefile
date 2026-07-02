@@ -3,6 +3,8 @@
 MANIFESTS = sb_manifest.txt t_manifest.txt
 JARS = switchboard.jar telephone.jar
 
+JAVAC_REL =
+
 PH_CLASS = telephone.class \
 	StrombergCarlson_Bell.class \
 	StrombergCarlson_Cabinet.class \
@@ -35,7 +37,7 @@ SBX_CLASS = 'Kellogg_Cabinet$$Kellogg_Cabinet_Overlay.class' \
 all: $(SB_CLASS) $(PH_CLASS)
 
 %.class: %.java
-	javac $?
+	javac $(JAVAC_REL) $?
 
 clean:
 
@@ -58,9 +60,16 @@ telephone.jar: $(PH_CLASS) t_manifest.txt
 t_manifest.txt:
 	echo "Main-Class: telephone" >$@
 
+java11:
+	mkdir -p temp
+	cp -r --parents $$(git ls-files) temp
+	make -C temp jar JAVAC_REL="--release 11"
+	cp temp/*.jar ../java11
+	rm -rf temp
+
 www: _FRC_
 	rsync -Wuv www/*.html www/*.png durgadas.com:/var/www/html/sims/tele-sb-sim
 	rsync -Wuv docs/*.html docs/*.png durgadas.com:/var/www/html/sims/tele-sb-sim/docs
 
-ship: $(JARS)
+ship: jar java11
 	cp ${JARS} ../
