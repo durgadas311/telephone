@@ -255,7 +255,7 @@ class StrombergCarlson_Cabinet extends JPanel
 		}
 		JMenuItem m = (JMenuItem)e.getSource();
 		if (m.getMnemonic() == KeyEvent.VK_H) {
-			_help.toggle();
+			_help.setOn(true);
 			return;
 		}
 		if (m.getMnemonic() == KeyEvent.VK_A) {

@@ -14,7 +14,8 @@ PH_CLASS = telephone.class \
 	StrombergCarlson_Properties.class \
 	StrombergCarlson_Rec.class \
 	StrombergCarlson_Shelf.class \
-	StrombergCarlson_Trans.class
+	StrombergCarlson_Trans.class \
+	GenericHelp.class
 
 SB_CLASS = switchboard.class \
 	Kellogg_Cabinet.class \
@@ -29,7 +30,8 @@ SB_CLASS = switchboard.class \
 	Kellogg_Properties.class \
 	Kellogg_RingSw.class \
 	Kellogg_StSpSw.class \
-	Kellogg_SwListener.class
+	Kellogg_SwListener.class \
+	GenericHelp.class
 
 SBX_CLASS = 'Kellogg_Cabinet$$Kellogg_Cabinet_Overlay.class' \
 	'Kellogg_NightAlarm$$Alarmer.class'

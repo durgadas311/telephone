@@ -1,5 +1,4 @@
 <HTML>
-<!-- $Id: switchboard_sim.html,v 1.8 2012/02/26 02:45:05 drmiller Exp $ -->
 
 <H2>Operating the Simulator</H2>
 
@@ -12,8 +11,8 @@ In general, clicking on an object activates it in some sense.
 
 <TABLE>
 <TR><TD>
-<IMG SRC="circuit.png" ALIGN=LEFT>
-Each circuit consists of two "Ring-off" (R.O.) drops,
+<IMG SRC="circuit.png"></TD>
+<TD VALIGN=TOP>Each circuit consists of two "Ring-off" (R.O.) drops,
 two phone plugs, a "Ring Switch" and a "Listen Switch".
 A R.O. drop will fall when
 the subscriber cranks their magneto,
@@ -24,8 +23,8 @@ into the subscriber line jack.
 
 <P><TABLE>
 <TR><TD>
-<IMG SRC="line-drop.png" ALIGN=LEFT>
-Each "subscriber line" 
+<IMG SRC="line-drop.png"></TD>
+<TD VALIGN=TOP>Each "subscriber line" 
 consists of a "Line Drop" and a "Line Jack".
 The line drop will fall when the subscriber cranks their magneto,
 if there is no circuit plugged into the line jack.
@@ -53,11 +52,12 @@ unless the SHIFT key is held down. "Ring-back" directs the ring signal
 to the "Answer" plug. "Ring" directs the signal to the "Call" plug.
 <DT><B>Phone Plug</B>
 <DD>
-<IMG SRC="plug-seated.png">&nbsp;<IMG SRC="plug-out.png">
-Clicking on a Phone Plug toggles it between the "pulled out" and
+<TABLE><TR><TD VALIGN=BOTTOM>
+<IMG SRC="plug-seated.png"></TD><TD VALIGN=BOTTOM><IMG SRC="plug-out.png"></TD>
+<TD>Clicking on a Phone Plug toggles it between the "pulled out" and
 normal (seated) state, with visual feedback. Clicking on another
 plug while one is "selected" will seat the previous one and pull-out
-the current one.
+the current one.</TD></TR></TABLE>
 <DT><B>Phone (Line) Jacks</B>
 <DD>Clicking on a Phone Jack does nothing unless a Phone Plug
 has been pulled-out. In that case, the plug is connected to the jack.
