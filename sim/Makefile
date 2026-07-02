@@ -75,3 +75,5 @@ www: _FRC_
 
 ship: jar java11
 	cp ${JARS} ../
+
+_FRC_:
